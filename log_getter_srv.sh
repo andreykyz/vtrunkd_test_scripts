@@ -215,8 +215,8 @@ grep `grep " Session " /tmp/${PREFIX}syslog-cli | awk -F[ {'print $2'} | awk -F]
 grep `grep " Session " /tmp/${PREFIX}syslog-srv | awk -F[ {'print $2'} | awk -F] {'print $1'} | head -1` /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-1_srv  
 grep `grep " Session " /tmp/${PREFIX}syslog-srv | awk -F[ {'print $2'} | awk -F] {'print $1'} | tail -1` /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-2_srv
 grep "First select time" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-1_cli_select_time
-grep "{\"p_" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
-grep "{\"p_" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
+grep "{\"p_\|exit" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
+grep "{\"p_\|exit" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
 grep "{\"p_" /tmp/${PREFIX}syslog-1_srv > /tmp/${PREFIX}syslog-1_srv_json
 grep "{\"p_" /tmp/${PREFIX}syslog-1_cli > /tmp/${PREFIX}syslog-1_cli_json
 grep "{\"p_" /tmp/${PREFIX}syslog-2_srv > /tmp/${PREFIX}syslog-2_srv_json
@@ -224,10 +224,12 @@ grep "{\"p_" /tmp/${PREFIX}syslog-2_cli > /tmp/${PREFIX}syslog-2_cli_json
 #tar cvfj /tmp/${COUNT}.tbz /tmp/${PREFIX}*
 tar cvf /tmp/${COUNT}.tbz --use-compress-prog=pbzip2 /tmp/${PREFIX}*
 echo "Uploading logs..."
-scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-1_cli_json $DBOXHOST:~/Dropbox/alarm_logs/
-scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-2_cli_json $DBOXHOST:~/Dropbox/alarm_logs/
-scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-1_srv_json $DBOXHOST:~/Dropbox/alarm_logs/
-scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-2_srv_json $DBOXHOST:~/Dropbox/alarm_logs/
+#scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-1_cli_json $DBOXHOST:~/Dropbox/alarm_logs/
+#scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-2_cli_json $DBOXHOST:~/Dropbox/alarm_logs/
+#scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-1_srv_json $DBOXHOST:~/Dropbox/alarm_logs/
+#scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-2_srv_json $DBOXHOST:~/Dropbox/alarm_logs/
+scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-srv_json $DBOXHOST:~/Dropbox/alarm_logs/
+scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-cli_json $DBOXHOST:~/Dropbox/alarm_logs/
 scp -P $DBOXHOST_PORT /tmp/${PREFIX}.nojson $DBOXHOST:~/Dropbox/alarm_logs/
 echo "Uploading tbz..."
 scp -P $DBOXHOST_PORT /tmp/${COUNT}.tbz $DBOXHOST:~/Dropbox/alarm_logs/

@@ -175,7 +175,7 @@ MAT='
 ./set_tc.sh 100kbit 200ms 50ms 50%    600kbit 100ms 50ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh 100kbit 200ms 50ms 50%    800kbit 100ms 50ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh 100kbit 200ms 50ms 50%   1200kbit  80ms 50ms 50%    100kbit 200ms 50ms 50%
-ssh user@srv "sudo ifconfig eth1 down"
+ssh user@srv "sudo ifconfig eth2 down"
 ./set_tc.sh  200kbit 200ms 50ms 50%    1kbit 500ms 50ms 50%    100kbit 200ms 50ms 50%
 sleep 0.1
 sleep 0.1
@@ -185,16 +185,16 @@ sleep 0.1
 ./set_tc.sh  200kbit 200ms 50ms 50%   1200kbit  80ms 50ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  200kbit 200ms 50ms 50%   5000kbit  10ms 10ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  300kbit 150ms 50ms 50%    300kbit 200ms 50ms 50%    100kbit 200ms 50ms 50%
-ssh user@srv "sudo ifconfig eth1 up"
+ssh user@srv "sudo ifconfig eth2 up"
 ./set_tc.sh  300kbit 150ms 50ms 50%    600kbit 100ms 50ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  300kbit 150ms 50ms 50%    800kbit 100ms 50ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  300kbit 150ms 50ms 50%   1200kbit  80ms 50ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  300kbit 150ms 50ms 50%   5000kbit  10ms 10ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  600kbit 100ms 50ms 50%    600kbit 100ms 50ms 50%    100kbit 200ms 50ms 50%
-ssh user@srv "sudo ifconfig eth2 down"
+ssh user@srv "sudo ifconfig eth1 down"
 ./set_tc.sh  600kbit 100ms 50ms 50%    800kbit 100ms 50ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  600kbit 100ms 50ms 50%   1200kbit  80ms 50ms 50%    100kbit 200ms 50ms 50%
-ssh user@srv "sudo ifconfig eth2 up"
+ssh user@srv "sudo ifconfig eth1 up"
 ./set_tc.sh  600kbit 100ms 50ms 50%   5000kbit  10ms 10ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  800kbit 100ms 50ms 50%    800kbit 100ms 50ms 50%    100kbit 200ms 50ms 50%
 ./set_tc.sh  800kbit 100ms 50ms 50%   1200kbit  80ms 50ms 50%    100kbit 200ms 50ms 50%
@@ -244,8 +244,8 @@ grep `grep " Session " /tmp/${PREFIX}syslog-cli | awk -F[ {'print $2'} | awk -F]
 grep `grep " Session " /tmp/${PREFIX}syslog-srv | awk -F[ {'print $2'} | awk -F] {'print $1'} | head -1` /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-1_srv  
 grep `grep " Session " /tmp/${PREFIX}syslog-srv | awk -F[ {'print $2'} | awk -F] {'print $1'} | tail -1` /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-2_srv
 grep "First select time" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-1_cli_select_time
-grep "{\"p_" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
-grep "{\"p_" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
+grep "{\"p_\|exit" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
+grep "{\"p_\|exit" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
 grep "{\"p_" /tmp/${PREFIX}syslog-1_srv > /tmp/${PREFIX}syslog-1_srv_json
 grep "{\"p_" /tmp/${PREFIX}syslog-1_cli > /tmp/${PREFIX}syslog-1_cli_json
 grep "{\"p_" /tmp/${PREFIX}syslog-2_srv > /tmp/${PREFIX}syslog-2_srv_json
@@ -253,11 +253,13 @@ grep "{\"p_" /tmp/${PREFIX}syslog-2_cli > /tmp/${PREFIX}syslog-2_cli_json
 #tar cvfj /tmp/${COUNT}.tbz /tmp/${PREFIX}*
 tar cvf /tmp/${COUNT}.tbz --use-compress-prog=pbzip2 /tmp/${PREFIX}*
 echo "Uploading logs..."
-scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-1_cli_json $DBOXHOST:~/Dropbox/alarm_logs/
-scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-2_cli_json $DBOXHOST:~/Dropbox/alarm_logs/
-scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-1_srv_json $DBOXHOST:~/Dropbox/alarm_logs/
-scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-2_srv_json $DBOXHOST:~/Dropbox/alarm_logs/
+#scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-1_cli_json $DBOXHOST:~/Dropbox/alarm_logs/
+#scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-2_cli_json $DBOXHOST:~/Dropbox/alarm_logs/
+#scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-1_srv_json $DBOXHOST:~/Dropbox/alarm_logs/
+#scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-2_srv_json $DBOXHOST:~/Dropbox/alarm_logs/
 scp -P $DBOXHOST_PORT /tmp/${PREFIX}.nojson $DBOXHOST:~/Dropbox/alarm_logs/
+scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-srv_json $DBOXHOST:~/Dropbox/alarm_logs/
+scp -P $DBOXHOST_PORT /tmp/${PREFIX}syslog-cli_json $DBOXHOST:~/Dropbox/alarm_logs/
 echo "Uploading tbz..."
 scp -P $DBOXHOST_PORT /tmp/${COUNT}.tbz $DBOXHOST:~/Dropbox/alarm_logs/
 rm /tmp/${PREFIX}syslog*
