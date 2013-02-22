@@ -89,7 +89,7 @@ else
     DELAY=`cat ./srv_emulate_2.sh | grep delay | grep -v "#" | awk {'print$10" "$11" "$12";"'} | tr -d '\n'`
 fi
 
-DOCS="$COUNT `git branch -a | grep \*` `git log --oneline -1` \n $SPD \n $DELAY"
+DOCS="$COUNT `cd ../ && git branch -a | grep \*` `cd ../ && git log --oneline -1` \n $SPD \n $DELAY"
 echo "Creating stat docstring... $DOCS"
 echo -e "$DOCS" > /tmp/"$PREFIX".nojson
 
