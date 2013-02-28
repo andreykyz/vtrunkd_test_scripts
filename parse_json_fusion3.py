@@ -35,12 +35,14 @@ def parse_file(fn):
 def main():
     data_c1 = parse_file(sys.argv[1]+'_syslog-1_cli_json')
     data_c2 = parse_file(sys.argv[1]+'_syslog-2_cli_json')
+    data_c3 = parse_file(sys.argv[1]+'_syslog-3_cli_json')
     data_s1 = parse_file(sys.argv[1]+'_syslog-1_srv_json')
     data_s2 = parse_file(sys.argv[1]+'_syslog-2_srv_json')
+    data_s3 = parse_file(sys.argv[1]+'_syslog-3_srv_json')
     # now plot
-    plot_data(sys.argv[1], data_c1, data_c2, data_s1, data_s2)
+    plot_data(sys.argv[1], data_c1, data_c2, data_c3, data_s1, data_s2, data_s3)
 
-def plot_data(fn, data_c1, data_c2, data_s1,  data_s2):
+def plot_data(fn, data_c1, data_c2, data_c3,  data_s1, data_s2,  data_s3):
     figurePlot = plt.figure(figsize=(23.5, 4.5 * 5))
     
     figurePlot.text(.5, .95, "SERVER\n"+open(fn+"_.nojson").read(), horizontalalignment='center')
@@ -49,12 +51,13 @@ def plot_data(fn, data_c1, data_c2, data_s1,  data_s2):
     plotAX3.set_yscale('log')
     plt.title("speed (upload, server)")
 
-    plt.plot(zipj(data_s1, "ts"), numpy.array(zipj(data_s1, "upload")), "-", label='upload1')
-    plt.plot( zipj(data_s2, "ts"), numpy.array(zipj(data_s2, "upload")), "-", label="upload2")
-    plt.plot(  zipj(data_s1, "ts"), numpy.array(zipj(data_s1, "magic_upload"))/1000.0, "-", label="magic_upload1")
-    plt.plot( zipj(data_s2, "ts"), numpy.array(zipj(data_s2, "magic_upload"))/1000.0, "-", label="magic_upload2")
+#    plt.plot(zipj(data_s1, "ts"), numpy.array(zipj(data_s1, "upload")), "-", label='upload1')
+#    plt.plot( zipj(data_s2, "ts"), numpy.array(zipj(data_s2, "upload")), "-", label="upload2")
+#    plt.plot(  zipj(data_s1, "ts"), numpy.array(zipj(data_s1, "magic_upload"))/1000.0, "-", label="magic_upload1")
+#    plt.plot( zipj(data_s2, "ts"), numpy.array(zipj(data_s2, "magic_upload"))/1000.0, "-", label="magic_upload2")
     plt.plot(  zipj(data_s1, "ts"), zipj(data_s1, "ACK_coming_speed"), "-", label="ACK_coming_speed1")
     plt.plot( zipj(data_s2, "ts"), zipj(data_s2, "ACK_coming_speed"), "-", label="ACK_coming_speed2")
+    plt.plot( zipj(data_s3, "ts"), zipj(data_s3, "ACK_coming_speed"), "-", label="ACK_coming_speed3")
     plt.legend()
     
     DNAME='my_max_send_q'
@@ -62,10 +65,10 @@ def plot_data(fn, data_c1, data_c2, data_s1,  data_s2):
     plt.title(DNAME + " (server)")
     plt.plot(zipj(data_s1, "ts"), zipj(data_s1, DNAME), "-", label="my_max_send_q1", color="b")
     plt.plot(zipj(data_s2, "ts"), zipj(data_s2, DNAME), "-", label="my_max_send_q2", color="g")
-    plt.plot(zipj(data_s1, "ts"), zipj(data_s1, "my_max_send_q_avg"), "-", label="my_max_send_q_avg1", color="c")
-    plt.plot(zipj(data_s2, "ts"), zipj(data_s2, "my_max_send_q_avg"), "-", label="my_max_send_q_avg2", color="m")
+    plt.plot(zipj(data_s3, "ts"), zipj(data_s3, DNAME), "-", label="my_max_send_q3", color="y")
     plt.plot(zipj(data_s1, "ts"), zipj(data_s1, "send_q_limit"), "-", label="send_q_limit1", color="r")
     plt.plot(zipj(data_s2, "ts"), zipj(data_s2, "send_q_limit"), "-", label="send_q_limit2", color="k")
+    plt.plot(zipj(data_s3, "ts"), zipj(data_s3, "send_q_limit"), "-", label="send_q_limit3", color="m")
     plt.legend()
     
     DNAME='rtt'
