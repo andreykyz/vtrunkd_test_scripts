@@ -46,7 +46,7 @@ def plot_data(fn, data_c1, data_c2, data_s1,  data_s2):
     figurePlot.text(.5, .95, "CLIENT\n"+open(fn+"_.nojson").read(), horizontalalignment='center')
 
     plotAX3 = plt.subplot(511)
-    plotAX3.set_yscale('log')
+#    plotAX3.set_yscale('log')
     plt.title("speed (upload, server)")
 
     plt.plot(zipj(data_c1, "ts"), numpy.array(zipj(data_c1, "upload"))*1000, "-", label='upload1')

@@ -123,8 +123,8 @@ else
     exit 0
 fi
 echo "Applying emulation TC rules"
-ssh user@srv-32 "sudo $VTRUNKD_V_ROOT/test/srv_emulate_2.sh > /dev/null"
-ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/test/cli_emulate_2.sh > /dev/null"
+ssh user@srv-32 "sudo $VTRUNKD_V_ROOT/test/srv_emulate_yota_sky.sh > /dev/null"
+ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/test/cli_emulate_yota_sky.sh > /dev/null"
 echo "Starting server..."
 ssh user@srv-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -s -f $VTRUNKD_V_ROOT/test/vtrunkd-srv.test.conf -P 5003"
 sleep 5
@@ -147,7 +147,7 @@ fi
 git branch -a | grep \*  | tr -d '\n' >> /tmp/${PREFIX}speed
 git log --oneline -1 >> /tmp/${PREFIX}speed
 echo "Worcking..."
-ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed &
+#ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed &
 sleep 1
 ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed 
 echo "" >>  /tmp/${PREFIX}speed
