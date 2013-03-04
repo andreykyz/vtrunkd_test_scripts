@@ -5,6 +5,7 @@ f3=""
 f0=""
 count="0"
 DIR=""
+ARCH="gzip -9"
 while getopts :d: OPTION
 do
  case $OPTION in
@@ -38,7 +39,7 @@ do
    fi
 #    echo $i
 done
-lzma -9e $f0 &
-lzma -9e $f1 &
-lzma -9e $f2 &
-lzma -9e $f3 &
+$ARCH $f0 &
+$ARCH $f1 &
+$ARCH $f2 &
+$ARCH $f3 &

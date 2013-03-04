@@ -22,7 +22,7 @@ tc -s class ls dev eth2
 echo "eth3 : goog 3g/cdma"
 tc qdisc del dev eth3 root
 tc qdisc add dev eth3 root handle 1: htb default 12
-tc class add dev eth3 parent 1:1 classid 1:12 htb rate 400kbit ceil 400kbit
-tc qdisc add dev eth3 parent 1:12 netem delay 120ms 50ms 10%
+tc class add dev eth3 parent 1:1 classid 1:12 htb rate 200kbit ceil 200kbit
+tc qdisc add dev eth3 parent 1:12 netem delay 20ms
 tc -s qdisc ls dev eth3
 tc -s class ls dev eth3

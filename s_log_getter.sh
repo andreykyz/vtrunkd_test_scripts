@@ -90,7 +90,7 @@ echo "Compiling vtrunkd ..."
 if ssh user@srv-32 "cd $VTRUNKD_V_ROOT; make 2>dev/null"; then 
     echo "OK"
 else
-    ssh user@srv-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" > /dev/null
+    ssh user@srv-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json --enable-debugg " > /dev/null
     ssh user@srv-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null 1>/dev/null"
 #    echo "Compile Error!"
 #    exit 0;
@@ -99,7 +99,7 @@ echo "Compiling ..."
 if ssh user@cli-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null"; then
     echo "OK"
 else
-    ssh user@cli-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json 2>/dev/null 1>/dev/null"
+    ssh user@cli-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json --enable-debugg " 2>/dev/null 1>/dev/null
     ssh user@cli-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null 1>/dev/null"
 #    echo "Compile Error!"
 #    exit 0;
@@ -133,7 +133,7 @@ ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cl
 if [ -z $ONE ]; then
     sleep 1
     echo "Starting client 2..."
-    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
+#    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
 fi
 sleep 8
 echo "Full started"
@@ -209,7 +209,7 @@ cp $VTRUNKD_L_ROOT/test/parse_json_fusion_cli.py $LOGS_FOLDER
 cd $LOGS_FOLDER; python ./parse_json_fusion_cli.py $COUNT
 #ssh -p $DBOXHOST_PORT $DBOXHOST "cd ~/Dropbox/alarm_logs/; python ./parse_json_fusion.py $COUNT"
 echo "Compressing logs in background"
-#sh $VTRUNKD_L_ROOT/files_thread_compress.sh -d $LOGS_FOLDER &
+sh $VTRUNKD_L_ROOT/test/files_thread_compress.sh -d $LOGS_FOLDER &
 echo "Clear syslog"
 rm /tmp/${PREFIX}*
 ssh user@cli-32 "cat /dev/null | sudo tee /var/log/syslog"

@@ -23,8 +23,8 @@ VCLI_ETH3_IP=192.168.59.100
 SRV_MACHINE="user@srv-32"
 CLI_MACHINE="user@cli-32"
 
-#NTP_SERVER="0.ubuntu.pool.ntp.org"
-NTP_SERVER="192.168.0.101"
+NTP_SERVER="0.ubuntu.pool.ntp.org"
+#NTP_SERVER="192.168.0.101"
 
 if [ ! -f $LCNT ]; then
     RND=`$(($RANDOM % 99))`
@@ -80,6 +80,8 @@ ssh user@srv-32 "cat /dev/null | sudo tee /var/log/syslog"
 echo "Copying vtrunkd sources ..."
 ssh user@cli-32 "rm -r -f $VTRUNKD_V_ROOT 2> /dev/null"
 ssh user@srv-32 "rm -r -f $VTRUNKD_V_ROOT 2> /dev/null"
+ssh user@cli-32 "sunc"
+ssh user@srv-32 "sync"
 ssh user@cli-32 "mkdir -p $VTRUNKD_V_ROOT 2> /dev/null"
 ssh user@srv-32 "mkdir -p $VTRUNKD_V_ROOT 2> /dev/null"
 scp -r $VTRUNKD_L_ROOT/* user@srv-32:$VTRUNKD_V_ROOT/ > /dev/null
@@ -134,7 +136,7 @@ if [ -z $ONE ]; then
     ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
     echo "Starting client 3..."
     sleep 1
-    ssh user@cli-32 "sudo /home/user/sandbox/vtrunkd_test1/vtrunkd -f /home/user/sandbox/vtrunkd_test1/test/vtrunkd-cli.test.conf atest3 192.168.59.101 -P 5003"
+    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest3 $VSRV_ETH2_IP -P 5003"
 fi
 sleep 8
 echo "Full started"
