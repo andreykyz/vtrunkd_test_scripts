@@ -194,8 +194,8 @@ cp /tmp/${PREFIX}* $LOGS_FOLDER
 #cp $VTRUNKD_L_ROOT/speed_parse_json_fusion.py $LOGS_FOLDER
 #cd $LOGS_FOLDER; python ./speed_parse_json_fusion.py $COUNT
 echo "Drawing graphs"
-#cp $VTRUNKD_L_ROOT/test/parse_json_fusion.py $LOGS_FOLDER
-#cd $LOGS_FOLDER; python ./parse_json_fusion.py $COUNT
+cp $VTRUNKD_L_ROOT/test/parse_json_fusion_cli_uni.py $LOGS_FOLDER
+cd $LOGS_FOLDER; python ./parse_json_fusion_cli_uni.py $COUNT
 cp $VTRUNKD_L_ROOT/test/parse_json_fusion_uni.py $LOGS_FOLDER
 cd $LOGS_FOLDER; python ./parse_json_fusion_uni.py $COUNT
 #ssh -p $DBOXHOST_PORT $DBOXHOST "cd ~/Dropbox/alarm_logs/; python ./parse_json_fusion.py $COUNT"
