@@ -90,7 +90,7 @@ echo "Compiling vtrunkd ..."
 if ssh user@srv-32 "cd $VTRUNKD_V_ROOT; make 2>dev/null"; then 
     echo "OK"
 else
-    ssh user@srv-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json --enable-debugg " > /dev/null
+    ssh user@srv-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" > /dev/null
     ssh user@srv-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null 1>/dev/null"
 #    echo "Compile Error!"
 #    exit 0;
@@ -99,7 +99,7 @@ echo "Compiling ..."
 if ssh user@cli-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null"; then
     echo "OK"
 else
-    ssh user@cli-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json --enable-debugg " 2>/dev/null 1>/dev/null
+    ssh user@cli-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" 2>/dev/null 1>/dev/null
     ssh user@cli-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null 1>/dev/null"
 #    echo "Compile Error!"
 #    exit 0;
@@ -133,7 +133,7 @@ ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cl
 if [ -z $ONE ]; then
     sleep 1
     echo "Starting client 2..."
-#    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
+    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
 fi
 sleep 8
 echo "Full started"
@@ -186,30 +186,21 @@ fi
 echo "Transfer syslogs"
 scp user@cli-32:/var/log/syslog /tmp/${PREFIX}syslog-cli
 scp user@srv-32:/var/log/syslog /tmp/${PREFIX}syslog-srv
-grep `grep " Session " /tmp/${PREFIX}syslog-cli | awk -F[ {'print $2'} | awk -F] {'print $1"]"'} | head -1` /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-1_cli
-grep `grep " Session " /tmp/${PREFIX}syslog-cli | awk -F[ {'print $2'} | awk -F] {'print $1"]"'} | tail -1` /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-2_cli
-grep `grep " Session " /tmp/${PREFIX}syslog-srv | awk -F[ {'print $2'} | awk -F] {'print $1"]"'} | head -1` /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-1_srv  
-grep `grep " Session " /tmp/${PREFIX}syslog-srv | awk -F[ {'print $2'} | awk -F] {'print $1"]"'} | tail -1` /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-2_srv
-grep "First select time" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-1_cli_select_time
-grep "{\"p_" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
-grep "{\"p_" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
-grep "{\"p_" /tmp/${PREFIX}syslog-1_srv > /tmp/${PREFIX}syslog-1_srv_json
-grep "{\"p_" /tmp/${PREFIX}syslog-1_cli > /tmp/${PREFIX}syslog-1_cli_json
-grep "{\"p_" /tmp/${PREFIX}syslog-2_srv > /tmp/${PREFIX}syslog-2_srv_json
-grep "{\"p_" /tmp/${PREFIX}syslog-2_cli > /tmp/${PREFIX}syslog-2_cli_json
+grep "\"name\"\:" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
+grep "\"name\"\:" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
 grep speed /tmp/${PREFIX}speed >> /tmp/"$PREFIX".nojson
 echo "Uploading logs..."
 cp /tmp/${PREFIX}* $LOGS_FOLDER
 #cp $VTRUNKD_L_ROOT/speed_parse_json_fusion.py $LOGS_FOLDER
 #cd $LOGS_FOLDER; python ./speed_parse_json_fusion.py $COUNT
 echo "Drawing graphs"
-cp $VTRUNKD_L_ROOT/test/parse_json_fusion.py $LOGS_FOLDER
-cd $LOGS_FOLDER; python ./parse_json_fusion.py $COUNT
-cp $VTRUNKD_L_ROOT/test/parse_json_fusion_cli.py $LOGS_FOLDER
-cd $LOGS_FOLDER; python ./parse_json_fusion_cli.py $COUNT
+#cp $VTRUNKD_L_ROOT/test/parse_json_fusion.py $LOGS_FOLDER
+#cd $LOGS_FOLDER; python ./parse_json_fusion.py $COUNT
+cp $VTRUNKD_L_ROOT/test/parse_json_fusion_uni.py $LOGS_FOLDER
+cd $LOGS_FOLDER; python ./parse_json_fusion_uni.py $COUNT
 #ssh -p $DBOXHOST_PORT $DBOXHOST "cd ~/Dropbox/alarm_logs/; python ./parse_json_fusion.py $COUNT"
 echo "Compressing logs in background"
-sh $VTRUNKD_L_ROOT/test/files_thread_compress.sh -d $LOGS_FOLDER &
+#sh $VTRUNKD_L_ROOT/test/files_thread_compress.sh -d $LOGS_FOLDER &
 echo "Clear syslog"
 rm /tmp/${PREFIX}*
 ssh user@cli-32 "cat /dev/null | sudo tee /var/log/syslog"
