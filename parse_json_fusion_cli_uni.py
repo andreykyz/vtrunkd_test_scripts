@@ -90,8 +90,8 @@ def plot_data(fn, data_cli, data_srv):
     plt.title(DNAME + " (client)")
     i=0
     for someLine in data_cli_arr:
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "send_q"), "-", label="my_max_send_q "+data_cli_arr[i][0]['name'])
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "send_q_limit"), "-", label="send_q_limit "+data_cli_arr[i][0]['name'])
+        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "s_q"), "-", label="my_max_send_q "+data_cli_arr[i][0]['name'])
+        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "s_q_limit"), "-", label="send_q_limit "+data_cli_arr[i][0]['name'])
         plt.legend()
         i= i+1
     
