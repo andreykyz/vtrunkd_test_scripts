@@ -107,54 +107,64 @@ def plot_data(fn, data_cli, data_srv):
 	figurePlot = plt.figure(figsize=(23.5, 4.5 * 5))
     figurePlot.text(.5, .95, "Real-time", horizontalalignment='center')
 
-    plotAX3 = plt.subplot(411)
+    plotAX3 = plt.subplot(511)
     plotAX3.set_yscale('log')
-    plt.title("speed (upload, server)")
+    plt.title("ACK coming speed")
+    i=0
+    for someLine in data_srv_arr:
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "ACS"), "-", label="ACK_coming_speed "+data_srv_arr[i][0]['name'])
+	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
+        i= i+1
+        
+    plotAX3 = plt.subplot(512)
+    plotAX3.set_yscale('log')
+    plt.title("speed ")
     i=0
     for someLine in data_srv_arr:
         try:
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "upload"), "-", label='upload '+data_srv_arr[i][0]['name'])
         except ValueError:
             plotAX3.set_yscale('linear')
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "ACS"), "-", label="ACK_coming_speed "+data_srv_arr[i][0]['name'])
-        #plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "cwnd"), "-", label="cwnd "+data_srv_arr[i][0]['name'])
-        #plt.legend()
-	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r_m"), "-", label='speed_garbage '+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r"), "-", label='speed_resend '+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_e"), "-", label='speed_effecient '+data_srv_arr[i][0]['name'], linestyle='--')
+        plt.legend()
         i= i+1
     
     DNAME='send_q'
-    plotAX3 = plt.subplot(412)
+    plotAX3 = plt.subplot(513)
     plt.title(DNAME + " (server)")
     i=0
     for someLine in data_srv_arr:
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "send_q"), "-", label="my_max_send_q "+data_srv_arr[i][0]['name'])
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "send_q_limit"), "-", label="send_q_limit "+data_srv_arr[i][0]['name'])
-        #plt.legend()
-	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_lim"), "-", label="send_q_limit "+data_srv_arr[i][0]['name'])
+        if data_srv_arr[i][2]['s_q_min'] != 120000 :
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_min"), "-", label="max_send_q_min "+data_srv_arr[i][0]['name'])
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_max"), "-", label="max_send_q_max "+data_srv_arr[i][0]['name'])
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q_avg "+data_srv_arr[i][0]['name'], linestyle='--')
+        else:
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q "+data_srv_arr[i][0]['name'])
+   	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
         i= i+1
     
     DNAME='rtt'
-    plotAX3 = plt.subplot(413)
+    plotAX3 = plt.subplot(514)
     plt.title("rtt (server)")
     i=0
     for someLine in data_srv_arr:
         plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], 'my_rtt'), "-", label="my_rtt "+data_srv_arr[i][0]['name'])
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], 'my_rtt'), "-", label="my_rtt "+data_srv_arr[i][0]['name'])
         plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], 'rtt'), "-", label="magic_rtt "+data_srv_arr[i][0]['name'])
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], 'rtt'), "-", label="magic_rtt "+data_srv_arr[i][0]['name'])
-        #plt.legend()
 	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
         i= i+1
 
     DNAME="buf_len"    
-    plotAX1 = plt.subplot(414)
+    plotAX1 = plt.subplot(515)
     plt.title(DNAME+ " (client)")
     i=0
-    plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'remote_buf_len'), "-")
+    plt.plot(zipj(data_cli_arr[0], "ts"), zipj(data_cli_arr[0], 'buf_len'), "-")
+#    plt.plot(zipj(data_cli_arr[0], "ts"), zipj(data_cli_arr[0], 'r_buf_len'), "-")
     for someLine in data_srv_arr:
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_srv_arr[i][0]['name'])
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "R_MODE"))*((i*10)+30), ".", label="R_MODE "+data_srv_arr[i][0]['name'])
-        #plt.legend()
 	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
         i=i+1
     
