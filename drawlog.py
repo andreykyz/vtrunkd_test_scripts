@@ -9,7 +9,7 @@ import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import sys, json
-import sys, time, glob, os, numpy, datetime, scipy
+import sys, time, glob, os, numpy, datetime
 import matplotlib.pyplot as plt
 import colorsys
 
@@ -154,6 +154,15 @@ def plot_data(fn, data_cli, data_srv):
    	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
         i= i+1
     
+
+    for data_arr in data_srv_arr:
+        for json in data_arr:
+            if json["R_MODE"] == 2:
+                plt.annotate(json['name'], xy=(int(json['ts']), int(90000)),  xycoords='data', xytext=(int(json['ts']), int(135000)), textcoords='data', arrowprops=dict(facecolor='red', shrink=0.05),  horizontalalignment='right', verticalalignment='top')
+            if json["R_MODE"] == 3:
+                plt.annotate(json['name'], xy=(int(json['ts']), int(90000)),  xycoords='data', xytext=(int(json['ts']), int(135000)), textcoords='data', arrowprops=dict(facecolor='green', shrink=0.05),  horizontalalignment='right', verticalalignment='top')
+
+
     DNAME='rtt'
     plotAX3 = plt.subplot(514)
     plt.title("rtt (server)")
