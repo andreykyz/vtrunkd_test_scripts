@@ -51,7 +51,10 @@ def main():
     #data_cli = parse_file(sys.argv[1]+'_syslog-cli_json')
     data_srv = parse_str(jsons)
     # now plot
-    plot_data("/tmp/plot_%s.png" % session, None, data_srv)
+    try:
+        plot_data("/tmp/plot_%s.png" % session, None, data_srv)
+    except ValueError:
+        plot_data("/tmp/plot_%s.png" % session, None, data_srv, False)
 
 def unused():
     data_cli_arr=[]
@@ -82,7 +85,7 @@ def unused():
 
 
 # name send_q_limit send_q rtt my_rtt cwnd isl buf_len upload hold_mode ACS R_MODE
-def plot_data(fn, data_cli, data_srv):
+def plot_data(fn, data_cli, data_srv, logax=True):
     
     data_srv_arr=[]
     someName = ""    
@@ -108,7 +111,7 @@ def plot_data(fn, data_cli, data_srv):
     figurePlot.text(.5, .95, "Real-time", horizontalalignment='center')
 
     plotAX3 = plt.subplot(511)
-    plotAX3.set_yscale('log')
+    if logax: plotAX3.set_yscale('log')
     plt.title("ACK coming speed")
     i=0
     for someLine in data_srv_arr:
@@ -126,10 +129,10 @@ def plot_data(fn, data_cli, data_srv):
 #            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "upload"), "-", label='upload '+data_srv_arr[i][0]['name'])
 #        except ValueError:
 #            plotAX3.set_yscale('linear')
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r_m"), "-", label='speed_garbage '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r"), "-", label='speed_resend '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_e"), "-", label='speed_effecient '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
-        plt.legend()
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r_m"), "--", label='speed_garbage '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r"), ".", label='speed_resend '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_e"), "-", label='speed_eff '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
+        plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
         i= i+1
     
     DNAME='send_q'
@@ -158,6 +161,7 @@ def plot_data(fn, data_cli, data_srv):
 
     DNAME='rtt'
     plotAX3 = plt.subplot(514)
+    if logax: plotAX3.set_yscale('log')
     plt.title("rtt (server)")
     i=0
     for someLine in data_srv_arr:
