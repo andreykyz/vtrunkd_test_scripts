@@ -11,7 +11,7 @@ matplotlib.use('Agg')
 import sys, json
 import sys, time, glob, os, numpy, datetime, scipy
 import matplotlib.pyplot as plt
-
+import colorsys
 
 def parse_str(ss):
     l_json = []
@@ -129,13 +129,13 @@ def plot_data(fn, data_cli, data_srv):
     plt.title("speed ")
     i=0
     for someLine in data_srv_arr:
-        try:
-            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "upload"), "-", label='upload '+data_srv_arr[i][0]['name'])
-        except ValueError:
-            plotAX3.set_yscale('linear')
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r_m"), "-", label='speed_garbage '+data_srv_arr[i][0]['name'])
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r"), "-", label='speed_resend '+data_srv_arr[i][0]['name'])
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_e"), "-", label='speed_effecient '+data_srv_arr[i][0]['name'], linestyle='--')
+#        try:
+#            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "upload"), "-", label='upload '+data_srv_arr[i][0]['name'])
+#        except ValueError:
+#            plotAX3.set_yscale('linear')
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r_m"), "-", label='speed_garbage '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r"), "-", label='speed_resend '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_e"), "-", label='speed_effecient '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
         plt.legend()
         i= i+1
     
@@ -144,13 +144,13 @@ def plot_data(fn, data_cli, data_srv):
     plt.title(DNAME + " (server)")
     i=0
     for someLine in data_srv_arr:
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_lim"), "-", label="send_q_limit "+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_lim"), "-", label="send_q_limit "+data_srv_arr[i][0]['name'],marker='*',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
         if data_srv_arr[i][2]['s_q_min'] != 120000 :
-            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_min"), "-", label="max_send_q_min "+data_srv_arr[i][0]['name'])
-            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_max"), "-", label="max_send_q_max "+data_srv_arr[i][0]['name'])
-            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q_avg "+data_srv_arr[i][0]['name'], linestyle='--')
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_min"), "-", label="max_send_q_min "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_max"), "-", label="max_send_q_max "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q_avg "+data_srv_arr[i][0]['name'], linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
         else:
-            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q "+data_srv_arr[i][0]['name'])
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
    	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
         i= i+1
     
@@ -205,6 +205,12 @@ def zip_sum(ll_json, name):
         for d in ld:
             z2 = scipy.interpolate.griddata((x.ravel(), y.ravel()), z.ravel(), (x2, y2), method='linear')
 
+def tohex(r,g,b):
+	hexchars = "0123456789ABCDEF"
+	r = int(r * 255)
+	g = int(g * 255)
+	b = int(b * 255)
+	return "#" + hexchars[r / 16] + hexchars[r % 16] + hexchars[g / 16] + hexchars[g % 16] + hexchars[b / 16] + hexchars[b % 16]
 
 
 if __name__ == '__main__':
