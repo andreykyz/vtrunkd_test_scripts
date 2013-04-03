@@ -116,6 +116,14 @@ def plot_data(fn, data_cli, data_srv):
 	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
         i= i+1
         
+
+    # annotate
+    an_x = zipj(data_srv_arr[0], "ts")[100]
+    an_y = zipj(data_srv_arr[0], "ACS")[100]
+    ax.annotate('some text', xy=(an_x, an_y),  xycoords='data', xytext=(an_x, an_y), textcoords='axes fraction', arrowprops=dict(facecolor='black', shrink=0.05),  horizontalalignment='right', verticalalignment='top',
+                                                                    )
+
+
     plotAX3 = plt.subplot(512)
     plotAX3.set_yscale('log')
     plt.title("speed ")
@@ -160,7 +168,7 @@ def plot_data(fn, data_cli, data_srv):
     plotAX1 = plt.subplot(515)
     plt.title(DNAME+ " (client)")
     i=0
-    plt.plot(zipj(data_cli_arr[0], "ts"), zipj(data_cli_arr[0], 'buf_len'), "-")
+#    plt.plot(zipj(data_cli_arr[0], "ts"), zipj(data_cli_arr[0], 'buf_len'), "-")
 #    plt.plot(zipj(data_cli_arr[0], "ts"), zipj(data_cli_arr[0], 'r_buf_len'), "-")
     for someLine in data_srv_arr:
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_srv_arr[i][0]['name'])
