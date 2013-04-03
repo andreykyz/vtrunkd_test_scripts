@@ -117,13 +117,6 @@ def plot_data(fn, data_cli, data_srv):
         i= i+1
         
 
-    # annotate
-    an_x = zipj(data_srv_arr[0], "ts")[100]
-    an_y = zipj(data_srv_arr[0], "ACS")[100]
-    ax.annotate('some text', xy=(an_x, an_y),  xycoords='data', xytext=(an_x, an_y), textcoords='axes fraction', arrowprops=dict(facecolor='black', shrink=0.05),  horizontalalignment='right', verticalalignment='top',
-                                                                    )
-
-
     plotAX3 = plt.subplot(512)
     plotAX3.set_yscale('log')
     plt.title("speed ")
