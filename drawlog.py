@@ -9,7 +9,7 @@ import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import sys, json
-import sys, time, glob, os, numpy, datetime
+import sys, time, glob, os, numpy, datetime, scipy
 import matplotlib.pyplot as plt
 
 
@@ -178,6 +178,26 @@ def zipj(l_json, name):
     for j in l_json:
         d.append(j[name])
     return d
+
+
+# NOT FINISHED
+def zip_sum(ll_json, name):
+    # create main grid
+    # get minimal ts,maximum ts from all jsons
+    # TODO: finish this!:
+    ts_start = ll_json[0][0]["ts"]
+    ts_end = ll_json[0][-1]["ts"]
+    # generate even grid
+    mgrid = np.mgrid[1:0.9:201j]
+    
+    # now interpolate to grid for each json
+    for ld in ll_json[1:]:
+        l_data = zipj(ld, name)
+        l_ts = zipj(ld, "ts")
+        for d in ld:
+            z2 = scipy.interpolate.griddata((x.ravel(), y.ravel()), z.ravel(), (x2, y2), method='linear')
+
+
 
 if __name__ == '__main__':
     main()
