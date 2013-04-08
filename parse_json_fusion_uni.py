@@ -123,10 +123,10 @@ def plot_data(fn, data_cli, data_srv):
 
     DNAME="buf_len"    
     plotAX1 = plt.subplot(515)
-    plt.title(DNAME+ " (client)")
+    plt.title(DNAME)
     i=0
     plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'buf_len'), "-")
-#    plt.plot(zipj(data_cli_arr[0], "ts"), zipj(data_cli_arr[0], 'r_buf_len'), "-")
+    plt.plot(zipj(data_srv_arr[0], "ts"), numpy.array(zipj(data_srv_arr[0], 'a_r_f'))*20, "-", label="ag ready flag" )
     for someLine in data_srv_arr:
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_srv_arr[i][0]['name'])
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "R_MODE"))*((i*10)+30), ".", label="R_MODE "+data_srv_arr[i][0]['name'])
