@@ -23,8 +23,8 @@ VCLI_ETH3_IP=192.168.59.100
 SRV_MACHINE="user@srv-32"
 CLI_MACHINE="user@cli-32"
 
-#NTP_SERVER="0.ubuntu.pool.ntp.org"
-NTP_SERVER="192.168.0.101"
+NTP_SERVER="0.ubuntu.pool.ntp.org"
+#NTP_SERVER="192.168.0.101"
 
 if [ ! -f $LCNT ]; then
     RND=`$(($RANDOM % 99))`
@@ -72,8 +72,8 @@ if [ -z "$TITLE" ]; then
 fi
 echo "Starting..."
 echo "killall vtrunkd ... "
-ssh user@srv-32 "sudo killall -9 vtrunkd 2> /dev/null && sudo ipcrm -M 567888"
-ssh user@cli-32 "sudo killall -9 vtrunkd 2> /dev/null && sudo ipcrm -M 567888"
+ssh user@srv-32 "sudo killall vtrunkd"
+ssh user@cli-32 "sudo killall vtrunkd"
 echo "Clear syslog"
 ssh user@cli-32 "cat /dev/null | sudo tee /var/log/syslog"
 ssh user@srv-32 "cat /dev/null | sudo tee /var/log/syslog"
@@ -134,6 +134,8 @@ if [ -z $ONE ]; then
     sleep 1
     echo "Starting client 2..."
     ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
+    echo "Starting client 3..."
+    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest3 $VSRV_ETH3_IP -P 5003"
 fi
 sleep 8
 echo "Full started"
@@ -147,8 +149,15 @@ fi
 git branch -a | grep \*  | tr -d '\n' >> /tmp/${PREFIX}speed
 git log --oneline -1 >> /tmp/${PREFIX}speed
 echo "Worcking..."
+#ssh user@cli-32 'nping -c 0 --udp -p2000-2050 --rate 50000 --quiet -N -e tun1 --data-length 1300 10.200.1.31' &
+#ssh user@srv-32 'nping -c 0 --udp -p2000-2050 --rate 500 --quiet -N -e tun100 --data-length 1300 10.200.1.32' &
 #ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed &
+#ssh user@cli-32 'nping -c 0 --udp -p2000-2050 --rate 10 --quiet -N -e tun1 --data-length 1300 10.200.1.31' &
+#ssh user@srv-32 'nping -c 0 --udp -p2000-2050 --rate 20 --quiet -N -e tun100 --data-length 1300 10.200.1.32' &
+#sleep 100
 sleep 1
+ssh user@cli-32 'killall nping'
+ssh user@srv-32 'killall nping'
 ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed 
 echo "" >>  /tmp/${PREFIX}speed
 ssh user@cli-32 "ping -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
@@ -157,8 +166,8 @@ echo "" >> /tmp/${PREFIX}speed
 cat ./test/srv_emulate_2.sh | grep delay | grep -v "#" | awk {'print$10" "$11" "$12";"'} | tr -d '\n' >> /tmp/${PREFIX}speed
 echo "" >> /tmp/${PREFIX}speed
 echo "killall vtrunkd"
-ssh user@srv-32 "sudo killall -9 vtrunkd && sudo ipcrm -M 567888"
-ssh user@cli-32 "sudo killall -9 vtrunkd && sudo ipcrm -M 567888"
+ssh user@srv-32 "sudo killall vtrunkd"
+ssh user@cli-32 "sudo killall vtrunkd"
 # NOT WORKING CODE -->>>>>>>>>>>>>>>
 if [ $TEST = "1" ]; then
  echo "Speed testing..."
