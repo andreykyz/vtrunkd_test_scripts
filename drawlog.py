@@ -17,6 +17,7 @@ def parse_str(ss):
     l_json = []
     for l in ss.split("\n"):
         dl = l.split();
+        if len(l) < 5: continue
         try:
             sdtime = dl[2];
             dt = time.strptime("14/09/12 %s000" % sdtime, '%d/%m/%y %H:%M:%S.%f');
@@ -107,7 +108,7 @@ def plot_data(fn, data_cli, data_srv, logax=True):
             data_srv_arr_item.append(jsonLine)
             data_srv_arr.append(data_srv_arr_item)
             
-	figurePlot = plt.figure(figsize=(23.5, 4.5 * 5))
+    figurePlot = plt.figure(figsize=(23.5, 4.5 * 5))
     figurePlot.text(.5, .95, "Real-time", horizontalalignment='center')
 
     plotAX3 = plt.subplot(511)
@@ -121,7 +122,7 @@ def plot_data(fn, data_cli, data_srv, logax=True):
         
 
     plotAX3 = plt.subplot(512)
-    plotAX3.set_yscale('log')
+    if logax: plotAX3.set_yscale('log')
     plt.title("speed ")
     i=0
     for someLine in data_srv_arr:
@@ -145,6 +146,8 @@ def plot_data(fn, data_cli, data_srv, logax=True):
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_min"), "-", label="max_send_q_min "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_max"), "-", label="max_send_q_max "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q_avg "+data_srv_arr[i][0]['name'], linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "b_sel"), "-",label="bad_selects "+data_srv_arr[i][0]['name'], linestyle=':',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.7))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "g_sel"), "-",label="good_selects "+data_srv_arr[i][0]['name'], linestyle=':',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.3))))
         else:
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
    	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
@@ -174,8 +177,11 @@ def plot_data(fn, data_cli, data_srv, logax=True):
     plotAX1 = plt.subplot(515)
     plt.title(DNAME)
     i=0
-    plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'buf_len'), "-")
-    plt.plot(zipj(data_srv_arr[0], "ts"), numpy.array(zipj(data_srv_arr[0], 'a_r_f'))*20, ".", label="ag ready flag" )
+    try:
+        plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'buf_len'), "-")
+        plt.plot(zipj(data_srv_arr[0], "ts"), numpy.array(zipj(data_srv_arr[0], 'a_r_f'))*20, ".", label="ag ready flag" )
+    except IndexError:
+        pass
     for someLine in data_srv_arr:
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_srv_arr[i][0]['name'])
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "R_MODE"))*((i*10)+30), ".", label="R_MODE "+data_srv_arr[i][0]['name'])

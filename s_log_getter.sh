@@ -72,8 +72,8 @@ if [ -z "$TITLE" ]; then
 fi
 echo "Starting..."
 echo "killall vtrunkd ... "
-ssh user@srv-32 "sudo killall vtrunkd"
-ssh user@cli-32 "sudo killall vtrunkd"
+ssh user@srv-32 "sudo killall vtrunkd ; sudo ipcrm -M 567888"
+ssh user@cli-32 "sudo killall vtrunkd ; sudo ipcrm -M 567888"
 echo "Clear syslog"
 ssh user@cli-32 "cat /dev/null | sudo tee /var/log/syslog"
 ssh user@srv-32 "cat /dev/null | sudo tee /var/log/syslog"
@@ -127,7 +127,6 @@ ssh user@srv-32 "sudo $VTRUNKD_V_ROOT/test/srv_emulate_yota_sky.sh > /dev/null"
 ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/test/cli_emulate_yota_sky.sh > /dev/null"
 echo "Starting server..."
 ssh user@srv-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -s -f $VTRUNKD_V_ROOT/test/vtrunkd-srv.test.conf -P 5003"
-sleep 5
 echo "Starting client 1..."
 ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest1 $VSRV_ETH1_IP -P 5003"
 if [ -z $ONE ]; then
@@ -135,9 +134,8 @@ if [ -z $ONE ]; then
     echo "Starting client 2..."
     ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
     echo "Starting client 3..."
-    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest3 $VSRV_ETH3_IP -P 5003"
+#    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest3 $VSRV_ETH3_IP -P 5003"
 fi
-sleep 8
 echo "Full started"
 if [ $EXEC = "1" ]; then
     "Execute only!"
@@ -158,7 +156,7 @@ echo "Worcking..."
 sleep 1
 ssh user@cli-32 'killall nping'
 ssh user@srv-32 'killall nping'
-ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed 
+ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 15 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed 
 echo "" >>  /tmp/${PREFIX}speed
 ssh user@cli-32 "ping -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
 cat ./test/srv_emulate_2.sh | grep ceil | awk {'print$12" "'} | tr -d '\n' >> /tmp/${PREFIX}speed
