@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 1. name server VM srv-32
-# 2. name client VM cli-32
+# 1. name server VM $SRV_MACHINE
+# 2. name client VM $CLI_MACHINE
 # 3. set up 3 net cards eth1...eth3 for each VM 
 # 4. add frac_digits(3) to syslog-ng options
 
@@ -20,8 +20,11 @@ VCLI_ETH1_IP=192.168.57.100
 VCLI_ETH2_IP=192.168.58.100
 VCLI_ETH3_IP=192.168.59.100
 
-SRV_MACHINE="user@srv-32"
+#SRV_MACHINE="user@srv-32"
+#CLI_MACHINE="user@cli-32"
+SRV_MACHINE="user@srv"
 CLI_MACHINE="user@cli-32"
+
 
 NTP_SERVER="0.ubuntu.pool.ntp.org"
 #NTP_SERVER="192.168.0.101"
@@ -71,70 +74,77 @@ if [ -z "$TITLE" ]; then
     echo "Title is $TITLE"
 fi
 echo "Starting..."
+echo "NTP sync..."
+ssh $CLI_MACHINE "sudo ntpdate $NTP_SERVER" &
+ssh $SRV_MACHINE "sudo ntpdate $NTP_SERVER" &
 echo "killall vtrunkd ... "
-ssh user@srv-32 "sudo killall vtrunkd ; sudo ipcrm -M 567888"
-ssh user@cli-32 "sudo killall vtrunkd ; sudo ipcrm -M 567888"
+ssh $SRV_MACHINE "sudo killall -9 vtrunkd ; sudo ipcrm -M 567888 ; sudo ipcrm -M 567889"
+ssh $CLI_MACHINE "sudo killall -9 vtrunkd ; sudo ipcrm -M 567888 ; sudo ipcrm -M 567889"
 echo "Clear syslog"
-ssh user@cli-32 "cat /dev/null | sudo tee /var/log/syslog"
-ssh user@srv-32 "cat /dev/null | sudo tee /var/log/syslog"
+ssh $CLI_MACHINE "cat /dev/null | sudo tee /var/log/syslog"
+ssh $SRV_MACHINE "cat /dev/null | sudo tee /var/log/syslog"
 echo "Copying vtrunkd sources ..."
-ssh user@cli-32 "rm -r -f $VTRUNKD_V_ROOT 2> /dev/null"
-ssh user@srv-32 "rm -r -f $VTRUNKD_V_ROOT 2> /dev/null"
-ssh user@cli-32 "sync"
-ssh user@srv-32 "sync"
-ssh user@cli-32 "mkdir -p $VTRUNKD_V_ROOT 2> /dev/null"
-ssh user@srv-32 "mkdir -p $VTRUNKD_V_ROOT 2> /dev/null"
-scp -r $VTRUNKD_L_ROOT/* user@srv-32:$VTRUNKD_V_ROOT/ > /dev/null
-scp -r $VTRUNKD_L_ROOT/* user@cli-32:$VTRUNKD_V_ROOT/ > /dev/null
+ssh $CLI_MACHINE "rm -r -f $VTRUNKD_V_ROOT 2> /dev/null"
+ssh $SRV_MACHINE "rm -r -f $VTRUNKD_V_ROOT 2> /dev/null"
+ssh $CLI_MACHINE "sync"
+ssh $SRV_MACHINE "sync"
+ssh $CLI_MACHINE "mkdir -p $VTRUNKD_V_ROOT 2> /dev/null"
+ssh $SRV_MACHINE "mkdir -p $VTRUNKD_V_ROOT 2> /dev/null"
+#cd $VTRUNKD_L_ROOT ; git checkout vsqo ; sync
+scp -r $VTRUNKD_L_ROOT/* $SRV_MACHINE:$VTRUNKD_V_ROOT/ > /dev/null
+#cd $VTRUNKD_L_ROOT ; git checkout client_mem_less  ; sync
+scp -r $VTRUNKD_L_ROOT/* $CLI_MACHINE:$VTRUNKD_V_ROOT/ > /dev/null
+#git checkout vsqo
 echo "Compiling vtrunkd ..."
-if ssh user@srv-32 "cd $VTRUNKD_V_ROOT; make 2>dev/null"; then 
+if ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make 2>dev/null"; then 
     echo "OK"
 else
-    ssh user@srv-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" > /dev/null
-    ssh user@srv-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null 1>/dev/null"
+    ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" 2>/dev/null 1>/dev/null
+#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O1 ./configure --prefix= --enable-json --disable-o3"  2>/dev/null 1>/dev/null
+#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= " 2>/dev/null 1>/dev/null
+    ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make" 2>/dev/null 1>/dev/null
 #    echo "Compile Error!"
 #    exit 0;
 fi
 echo "Compiling ..."
-if ssh user@cli-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null"; then
+if ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make 2>/dev/null"; then
     echo "OK"
 else
-    ssh user@cli-32 "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" 2>/dev/null 1>/dev/null
-    ssh user@cli-32 "cd $VTRUNKD_V_ROOT; make 2>/dev/null 1>/dev/null"
+#    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O0 ./configure --prefix= --enable-json --disable-o3"  2>/dev/null 1>/dev/null
+    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json"  2>/dev/null 1>/dev/null
+    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make"  2>/dev/null 1>/dev/null
 #    echo "Compile Error!"
 #    exit 0;
 fi
 
-echo "NTP sync..."
-ssh user@cli-32 "sudo ntpdate $NTP_SERVER" &
-sleep 1
-ssh user@srv-32 "sudo ntpdate $NTP_SERVER"
 echo "Setting IP addresses..."
-if ssh user@srv-32 "sudo ifconfig eth1 $VSRV_ETH1_IP && sudo ifconfig eth2 $VSRV_ETH2_IP && sudo ifconfig eth3 $VSRV_ETH3_IP"; then
+if ssh $SRV_MACHINE "sudo ifconfig eth1 $VSRV_ETH1_IP && sudo ifconfig eth2 $VSRV_ETH2_IP && sudo ifconfig eth3 $VSRV_ETH3_IP"; then
     echo "OK"
 else 
     echo "IP setup error"
     exit 0
 fi
-if ssh user@cli-32 "sudo ifconfig eth1 $VCLI_ETH1_IP && sudo ifconfig eth2 $VCLI_ETH2_IP && sudo ifconfig eth3 $VCLI_ETH3_IP"; then
+if ssh $CLI_MACHINE "sudo ifconfig eth1 $VCLI_ETH1_IP && sudo ifconfig eth2 $VCLI_ETH2_IP && sudo ifconfig eth3 $VCLI_ETH3_IP"; then
     echo "OK"
 else 
     echo "IP setup error"
     exit 0
 fi
 echo "Applying emulation TC rules"
-ssh user@srv-32 "sudo $VTRUNKD_V_ROOT/test/srv_emulate_yota_sky.sh > /dev/null"
-ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/test/cli_emulate_yota_sky.sh > /dev/null"
+ssh $SRV_MACHINE "sudo $VTRUNKD_V_ROOT/test/srv_emulate_2.sh > /dev/null"
+#ssh $SRV_MACHINE "sudo $VTRUNKD_V_ROOT/test/srv_emulate_yota_sky.sh > /dev/null"
+#ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/test/cli_emulate_yota_sky.sh > /dev/null"
 echo "Starting server..."
-ssh user@srv-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -s -f $VTRUNKD_V_ROOT/test/vtrunkd-srv.test.conf -P 5003"
+#ssh $SRV_MACHINE "sudo valgrind --tool=callgrind --trace-children=yes $VTRUNKD_V_ROOT/vtrunkd -s -f $VTRUNKD_V_ROOT/test/vtrunkd-srv.test.conf -P 5003"
+ssh $SRV_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -s -f $VTRUNKD_V_ROOT/test/vtrunkd-srv.test.conf -P 5003"
 echo "Starting client 1..."
-ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest1 $VSRV_ETH1_IP -P 5003"
+ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest1 $VSRV_ETH1_IP -P 5003"
 if [ -z $ONE ]; then
     sleep 1
     echo "Starting client 2..."
-    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
+    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest2 $VSRV_ETH2_IP -P 5003"
     echo "Starting client 3..."
-#    ssh user@cli-32 "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest3 $VSRV_ETH3_IP -P 5003"
+    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest3 $VSRV_ETH3_IP -P 5003"
 fi
 echo "Full started"
 if [ $EXEC = "1" ]; then
@@ -147,25 +157,29 @@ fi
 git branch -a | grep \*  | tr -d '\n' >> /tmp/${PREFIX}speed
 git log --oneline -1 >> /tmp/${PREFIX}speed
 echo "Worcking..."
-#ssh user@cli-32 'nping -c 0 --udp -p2000-2050 --rate 50000 --quiet -N -e tun1 --data-length 1300 10.200.1.31' &
-#ssh user@srv-32 'nping -c 0 --udp -p2000-2050 --rate 500 --quiet -N -e tun100 --data-length 1300 10.200.1.32' &
-#ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed &
-#ssh user@cli-32 'nping -c 0 --udp -p2000-2050 --rate 10 --quiet -N -e tun1 --data-length 1300 10.200.1.31' &
-#ssh user@srv-32 'nping -c 0 --udp -p2000-2050 --rate 20 --quiet -N -e tun100 --data-length 1300 10.200.1.32' &
+sleep 3
+#ssh $CLI_MACHINE 'nping -c 0 --udp -p2000-2050 --rate 50 --quiet -N -e tun1 --data-length 1300 10.200.1.31' &
+#ssh $SRV_MACHINE 'nping -c 0 --udp -p2000-2050 --rate 200 --quiet -N -e tun100 --data-length 18000 10.200.1.32' &
+#ssh $CLI_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed &
+#ssh $CLI_MACHINE 'nping -c 0 --udp -p2000-2050 --rate 10 --quiet -N -e tun1 --data-length 1300 10.200.1.31' &
+#ssh $SRV_MACHINE 'nping -c 0 --udp -p2000-2050 --rate 20 --quiet -N -e tun100 --data-length 1300 10.200.1.32' &
 #sleep 100
 sleep 1
-ssh user@cli-32 'killall nping'
-ssh user@srv-32 'killall nping'
-ssh user@cli-32 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 15 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed 
+#ssh $CLI_MACHINE 'killall nping'
+#ssh $SRV_MACHINE 'killall nping'
+#ssh $CLI_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 150 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed 
+sleep 1
+ssh $CLI_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 200 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed
+#ssh $SRV_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 400 --connect-timeout 4 http://10.200.1.32/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed
 echo "" >>  /tmp/${PREFIX}speed
-ssh user@cli-32 "ping -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
+ssh $CLI_MACHINE "ping -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
 cat ./test/srv_emulate_2.sh | grep ceil | awk {'print$12" "'} | tr -d '\n' >> /tmp/${PREFIX}speed
 echo "" >> /tmp/${PREFIX}speed
 cat ./test/srv_emulate_2.sh | grep delay | grep -v "#" | awk {'print$10" "$11" "$12";"'} | tr -d '\n' >> /tmp/${PREFIX}speed
 echo "" >> /tmp/${PREFIX}speed
-echo "killall vtrunkd"
-ssh user@srv-32 "sudo killall vtrunkd"
-ssh user@cli-32 "sudo killall vtrunkd"
+#echo "killall vtrunkd"
+#ssh $SRV_MACHINE "sudo killall vtrunkd"
+#ssh $CLI_MACHINE "sudo killall vtrunkd"
 # NOT WORKING CODE -->>>>>>>>>>>>>>>
 if [ $TEST = "1" ]; then
  echo "Speed testing..."
@@ -191,10 +205,12 @@ echo "efficiency factor - ${AG_EFF}% C_grow - ${C_GROW}% C_use - ${fdsfsdf}%" >>
 fi
 # <<<<<<<<<<<<<<-- END NOT WORKING CODE
 echo "Transfer syslogs"
-scp user@cli-32:/var/log/syslog /tmp/${PREFIX}syslog-cli
-scp user@srv-32:/var/log/syslog /tmp/${PREFIX}syslog-srv
+scp $CLI_MACHINE:/var/log/syslog /tmp/${PREFIX}syslog-cli
+scp $SRV_MACHINE:/var/log/syslog /tmp/${PREFIX}syslog-srv
 grep "\"name\"\:" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
 grep "\"name\"\:" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
+cd $VTRUNKD_L_ROOT ; git log -n 1 | head -1 >> /tmp/"$PREFIX".nojson
+cd $VTRUNKD_L_ROOT ; git log -n 1 | tail -1 >> /tmp/"$PREFIX".nojson
 grep speed /tmp/${PREFIX}speed >> /tmp/"$PREFIX".nojson
 echo "Uploading logs..."
 cp /tmp/${PREFIX}* $LOGS_FOLDER
@@ -210,6 +226,6 @@ echo "Compressing logs in background"
 #sh $VTRUNKD_L_ROOT/test/files_thread_compress.sh -d $LOGS_FOLDER &
 echo "Clear syslog"
 rm /tmp/${PREFIX}*
-ssh user@cli-32 "cat /dev/null | sudo tee /var/log/syslog"
-ssh user@srv-32 "cat /dev/null | sudo tee /var/log/syslog"
+#ssh $CLI_MACHINE "cat /dev/null | sudo tee /var/log/syslog"
+#ssh $SRV_MACHINE "cat /dev/null | sudo tee /var/log/syslog"
 echo "Complete!!!"

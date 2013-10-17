@@ -5,7 +5,7 @@ matplotlib.use('Agg')
 import sys, json
 import sys, time, glob, os, numpy, datetime
 import matplotlib.pyplot as plt
-
+import colorsys
 
 def parse_file(fn):
     l_json = []
@@ -26,8 +26,8 @@ def parse_file(fn):
     return l_json
 
 def main():
-    data_cli = parse_file(sys.argv[1]+'_syslog-cli_json')
-    data_srv = parse_file(sys.argv[1]+'_syslog-srv_json')
+    data_cli = parse_file(sys.argv[1]+'_syslog-srv_json')
+    data_srv = parse_file(sys.argv[1]+'_syslog-cli_json')
     # now plot
     plot_data(sys.argv[1], data_cli, data_srv)
 
@@ -76,60 +76,103 @@ def plot_data(fn, data_cli, data_srv):
     figurePlot.text(.5, .95, "SERVER\n"+open(fn+"_.nojson").read(), horizontalalignment='center')
 
     plotAX3 = plt.subplot(511)
-    plt.title("speed (upload, client)")
+    plotAX3.set_yscale('log')
+    plt.title("ACK coming speed")
     i=0
-    for someLine in data_cli_arr:
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "upload"), "-", label='upload '+data_cli_arr[i][0]['name'])
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "ACS"), "-", label="ACK_coming_speed "+data_cli_arr[i][0]['name'])
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "cwnd"), "-", label="cwnd "+data_cli_arr[i][0]['name'])
+    for someLine in data_srv_arr:
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "ACS"), "-", label="ACK_coming_speed "+data_srv_arr[i][0]['name'])
+        plt.legend()
+        i= i+1
+
+    plotAX3 = plt.subplot(512)
+#    plotAX3.set_yscale('log')
+    plt.title("speed ")
+    i=0
+    for someLine in data_srv_arr:
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r_m"), "-", label='speed_garbage '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_r"), "-", label='speed_resend '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_e"), "-", label='speed_effecient '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
+#        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "m_s_min"), "-", label='magic_speed_min '+data_srv_arr[i][0]['name'],linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
+#        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "m_s_max"), "-", label='magic_speed_max '+data_srv_arr[i][0]['name'],linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
+#        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "upload"), "-", label='upload '+data_srv_arr[i][0]['name'])
         plt.legend()
         i= i+1
     
     DNAME='send_q'
-    plotAX3 = plt.subplot(512)
-    plt.title(DNAME + " (client)")
+    plotAX3 = plt.subplot(513)
+    plt.title(DNAME + " (server)")
     i=0
-    for someLine in data_cli_arr:
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "s_q"), "-", label="my_max_send_q "+data_cli_arr[i][0]['name'])
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], "s_q_limit"), "-", label="send_q_limit "+data_cli_arr[i][0]['name'])
+    for someLine in data_srv_arr:
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_lim"), "-", label="send_q_limit "+data_srv_arr[i][0]['name'],marker='*',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
+        if data_srv_arr[i][2]['s_q_min'] != 120000 :
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_min"), "-", label="max_send_q_min "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_max"), "-", label="max_send_q_buf "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q_avg "+data_srv_arr[i][0]['name'], linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_c"), "-", label="window "+data_srv_arr[i][0]['name'], linestyle='-',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),0.8,0.4))))
+#            if i == 1:
+#                plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "v_s_q"), "-", label="v_send_q "+data_srv_arr[i][0]['name'], linestyle='-',c='k')
+#            else:
+#                plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "v_s_q"), "-", label="v_send_q "+data_srv_arr[i][0]['name'], linestyle='--',c='k')
+        else:
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="send_q "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_b"), "-", label="send_q_buffer "+data_srv_arr[i][0]['name'],linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
         plt.legend()
         i= i+1
     
     DNAME='rtt'
-    plotAX3 = plt.subplot(513)
-    plt.title("rtt (client)")
+    plotAX3 = plt.subplot(514)
+    plt.title("rtt (server)")
     i=0
-    for someLine in data_cli_arr:
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], 'my_rtt'), "-", label="my_rtt "+data_cli_arr[i][0]['name'])
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], 'my_rtt'), "-", label="my_rtt "+data_cli_arr[i][0]['name'])
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], 'rtt'), "-", label="magic_rtt "+data_cli_arr[i][0]['name'])
-        plt.plot(zipj(data_cli_arr[i], "ts"), zipj(data_cli_arr[i], 'rtt'), "-", label="magic_rtt "+data_cli_arr[i][0]['name'])
+    for someLine in data_srv_arr:
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], 'my_rtt'), "-", label="my_rtt "+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], 'rtt'), "-", label="magic_rtt "+data_srv_arr[i][0]['name'])
         plt.legend()
         i= i+1
 
     DNAME="buf_len"    
-    plotAX1 = plt.subplot(514)
-    plt.title(DNAME+ " (server)")
+    plotAX1 = plt.subplot(515)
+    plt.title(DNAME)
     i=0
     plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'buf_len'), "-")
-    for someLine in data_cli_arr:
-        plt.plot(zipj(data_cli_arr[i], "ts"), numpy.array(zipj(data_cli_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_cli_arr[i][0]['name'])
-        plt.plot(zipj(data_cli_arr[i], "ts"), numpy.array(zipj(data_cli_arr[i], "R_MODE"))*((i*10)+30), ".", label="R_MODE "+data_cli_arr[i][0]['name'])
+    plt.plot(zipj(data_srv_arr[0], "ts"), numpy.array(zipj(data_srv_arr[0], 'a_r_f'))*20, "-", label="ag ready flag" )
+    for someLine in data_srv_arr:
+        plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "R_MODE"))*((i*10)+30), ".", label="R_MODE "+data_srv_arr[i][0]['name'])
         plt.legend()
         i=i+1
     
-    DNAME='incomplete_seq_len'
-    plotAX2 = plt.subplot(515)
-    plt.title(DNAME + " (server)")
-    plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'isl'), "-")
-
-    figurePlot.savefig(fn+"c.png", dpi=100)
+    figurePlot.savefig(fn+"_cli.png", dpi=100)
     
 def zipj(l_json, name):
     d = []
     for j in l_json:
-        d.append(j[name])
+        if name=='s_q':
+            if j[name]>200000:
+                d.append(200000)
+            else:
+                d.append(j[name])
+        else:
+            d.append(j[name])
     return d
+
+def zip_sum(l_json, name):
+    d = []
+    summ = 0
+    for i in l_json[0]:
+        q = 0
+        summ = 0
+        for j in l_json:
+            summ = summ + j[q][name]
+            q = q+1
+        d.append(summ)
+    return d
+
+def tohex(r,g,b):
+	hexchars = "0123456789ABCDEF"
+	r = int(r * 255)
+	g = int(g * 255)
+	b = int(b * 255)
+	return "#" + hexchars[r / 16] + hexchars[r % 16] + hexchars[g / 16] + hexchars[g % 16] + hexchars[b / 16] + hexchars[b % 16]
 
 if __name__ == '__main__':
     main()
