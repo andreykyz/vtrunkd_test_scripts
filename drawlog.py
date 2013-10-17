@@ -36,8 +36,9 @@ def toilet(filename):
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
     return ''.join(c for c in filename if c in valid_chars)
 
-
+global vsq
 def main():
+    global vsq
     form = cgi.FieldStorage()
     if not "session" in form:
         print "Content-type: text/html\n"
@@ -49,6 +50,10 @@ def main():
         sys.exit()
     # now prepare logfile
     jsons=commands.getoutput("grep '%s' /var/log/syslog | grep '{' | tail -n %s" % (session, str(l)))
+    if "v_s_q" in jsons:
+        vsq=1
+    else:
+        vsq=0
     #data_cli = parse_file(sys.argv[1]+'_syslog-cli_json')
     data_srv = parse_str(jsons)
     # now plot
@@ -87,7 +92,7 @@ def unused():
 
 # name send_q_limit send_q rtt my_rtt cwnd isl buf_len upload hold_mode ACS R_MODE
 def plot_data(fn, data_cli, data_srv, logax=True):
-    
+    global vsq
     data_srv_arr=[]
     someName = ""    
     for jsonLine in data_srv:
@@ -146,8 +151,12 @@ def plot_data(fn, data_cli, data_srv, logax=True):
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_min"), "-", label="max_send_q_min "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_max"), "-", label="max_send_q_max "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q_avg "+data_srv_arr[i][0]['name'], linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
-            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "b_sel"), "-",label="bad_selects "+data_srv_arr[i][0]['name'], linestyle=':',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.7))))
-            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "g_sel"), "-",label="good_selects "+data_srv_arr[i][0]['name'], linestyle=':',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.3))))
+            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_c"), "-", label="window "+data_srv_arr[i][0]['name'], linestyle=':',c='g')#tohex(*(colorsys.hsv_to_rgb((1./6)*(i),0.8,0.4))))
+            if vsq:
+              if i == 1:
+                plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "v_s_q"), "-", label="v_send_q "+data_srv_arr[i][0]['name'], linestyle='-',c='k')
+              else:
+                plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "v_s_q"), "-", label="v_send_q "+data_srv_arr[i][0]['name'], linestyle='--',c='k')
         else:
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="max_send_q "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
    	plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)

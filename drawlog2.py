@@ -17,7 +17,6 @@ def parse_str(ss):
     l_json = []
     for l in ss.split("\n"):
         dl = l.split();
-        if len(l) < 5: continue
         try:
             sdtime = dl[2];
             dt = time.strptime("14/09/12 %s000" % sdtime, '%d/%m/%y %H:%M:%S.%f');
@@ -108,7 +107,7 @@ def plot_data(fn, data_cli, data_srv, logax=True):
             data_srv_arr_item.append(jsonLine)
             data_srv_arr.append(data_srv_arr_item)
             
-    figurePlot = plt.figure(figsize=(23.5, 4.5 * 5))
+	figurePlot = plt.figure(figsize=(23.5, 4.5 * 5))
     figurePlot.text(.5, .95, "Real-time", horizontalalignment='center')
 
     plotAX3 = plt.subplot(511)
@@ -175,11 +174,8 @@ def plot_data(fn, data_cli, data_srv, logax=True):
     plotAX1 = plt.subplot(515)
     plt.title(DNAME)
     i=0
-    try:
-        plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'buf_len'), "-")
-        plt.plot(zipj(data_srv_arr[0], "ts"), numpy.array(zipj(data_srv_arr[0], 'a_r_f'))*20, ".", label="ag ready flag" )
-    except IndexError:
-        pass
+    plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'buf_len'), "-")
+    plt.plot(zipj(data_srv_arr[0], "ts"), numpy.array(zipj(data_srv_arr[0], 'a_r_f'))*20, ".", label="ag ready flag" )
     for someLine in data_srv_arr:
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_srv_arr[i][0]['name'])
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "R_MODE"))*((i*10)+30), ".", label="R_MODE "+data_srv_arr[i][0]['name'])
@@ -187,7 +183,7 @@ def plot_data(fn, data_cli, data_srv, logax=True):
         i=i+1
     
     
-    figurePlot.savefig(fn, dpi=35)
+    figurePlot.savefig(fn, dpi=45)
     print "Content-type: image/png\n"
     print file(fn).read()
     
