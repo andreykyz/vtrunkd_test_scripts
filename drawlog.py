@@ -13,7 +13,7 @@ import sys, time, glob, os, numpy, datetime
 import matplotlib.pyplot as plt
 import colorsys
 
-def parse_str(ss):
+def parse_str(ss, stop_minute):
     l_json = []
     for l in ss.split("\n"):
         dl = l.split();
@@ -26,6 +26,7 @@ def parse_str(ss):
             sys.exit()
         ms = int(sdtime.split(".")[1])
         t = int(time.mktime(dt))*1000+ms
+        if (t/1000.)>stop_minute: break
         data = json.loads('{' + l.split('{')[1])
         data["ts"] = t
         l_json.append(data)
@@ -45,50 +46,24 @@ def main():
         print """<html><body>No input session given</body></html>"""
         sys.exit()
     session=toilet(form["session"].value)
-    l=int(form["length"].value)
+    minute=form["minute"].value
+    start_for=form["startfrom"].value
     if len(session) < 5 or len(session) > 16:
         sys.exit()
     # now prepare logfile
-    jsons=commands.getoutput("grep '%s' /var/log/syslog | grep '{' | tail -n %s" % (session, str(l)))
+#    jsons=commands.getoutput("grep '%s' /var/log/syslog | grep '{' | tail -n %s" % (session, str(l)))
+    jsons=commands.getoutput("grep '%s' /var/log/syslog | grep '{' | tail -n +`cat syslog | grep '%s' -m 1 -n | cut -d: -f1`" % (session, start_for))
     if "v_s_q" in jsons:
         vsq=1
     else:
         vsq=0
     #data_cli = parse_file(sys.argv[1]+'_syslog-cli_json')
-    data_srv = parse_str(jsons)
+    data_srv = parse_str(jsons,minute)
     # now plot
     try:
         plot_data("/tmp/plot_%s.png" % session, None, data_srv)
     except ValueError:
         plot_data("/tmp/plot_%s.png" % session, None, data_srv, False)
-
-def unused():
-    data_cli_arr=[]
-    data_srv_arr=[]
-    someName = ""
-    for jsonLine in data_cli:
-        if len(data_cli_arr) == 0:
-            data_cli_arr_item = []
-            data_cli_arr_item.append(jsonLine)
-            data_cli_arr.append(data_cli_arr_item)
-        else:
-            succ=0
-            for someArr in data_cli_arr:
-                if someArr[0]['name'] == jsonLine['name']:
-                    someArr.append(jsonLine)
-                    succ = 1
-                    break
-            if succ == 1:
-                continue
-            data_cli_arr_item = []
-            data_cli_arr_item.append(jsonLine)
-            data_cli_arr.append(data_cli_arr_item)
-    DNAME='incomplete_seq_len'
-    plotAX2 = plt.subplot(515)
-    plt.title(DNAME + " (client)")
-    plt.plot(zipj(data_cli_arr[0], "ts"), zipj(data_cli_arr[0], 'isl'), "-")
-
-
 
 # name send_q_limit send_q rtt my_rtt cwnd isl buf_len upload hold_mode ACS R_MODE
 def plot_data(fn, data_cli, data_srv, logax=True):
