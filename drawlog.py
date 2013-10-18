@@ -13,6 +13,30 @@ import sys, time, glob, os, numpy, datetime
 import matplotlib.pyplot as plt
 import colorsys
 
+def print_form():
+    print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+    print '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru-ru" lang="ru-ru" dir="ltr" >'
+    print '<body>'
+    print '<head>'
+    print '<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>'
+    print '</head>'
+    print '<p>Session:<input id="session" name="session" type="text" size="25" maxlength="16" value="" /></p>'
+    print '<p>Start from:<input id="startfrom"  name="startfrom" type="text" size="25" maxlength="30" value="" /></p>'
+    print '<p>Length in minutes:<input id="minute"  name="minute" type="text" size="25" maxlength="3" value="" /></p>'
+    print '<p>Syslog file:<input id="syslogfile"  name="syslogfile" type="text" size="25" maxlength="30" value="/var/log/syslog" /></p>'
+    print '<p> <button>GET</button></p>'
+    print '<script>'
+    print 'url = "http://bond2.wfst.co/cgi-bin/drawlog.py";'
+    print '$( "button" ).click(function() {'
+    print '        ss = $( "#session" ).val();'
+    print '        strt = $( "#startfrom" ).val();'
+    print '        min = $( "#minute" ).val(); sysl=$( "#syslogfile" ).val();'
+    print '        window.location.replace(url + "?session=" + ss + "&startfrom=" + strt + "&minute=" + min + "&syslogfile=" + sysl);'
+    print '});'
+    print '</script>'
+    print '</body>'
+    print '</html>'
+
 def parse_str(ss, stop_minute):
     l_json = []
     start_time=0
@@ -47,16 +71,17 @@ def main():
     form = cgi.FieldStorage()
     if not "session" in form:
         print "Content-type: text/html\n"
-        print """<html><body>No input session given</body></html>"""
+        print_form()
         sys.exit()
     session=toilet(form["session"].value)
     minute=form["minute"].value
     start_for=form["startfrom"].value
+    syslogfile=form["syslogfile"].value
     if len(session) < 5 or len(session) > 16:
         sys.exit()
     # now prepare logfile
-    tmp=commands.getoutput("grep '%s' /var/log/syslog1 | grep '{' | grep '%s' -m 1 -n | cut -d: -f1" % (session, start_for)).split()[0]
-    jsons=commands.getoutput("grep '%s' /var/log/syslog1 | grep '{' | tail -n +%s" % (session, tmp))
+    tmp=commands.getoutput("grep '%s' %s | grep '{' | grep '%s' -m 1 -n | cut -d: -f1" % (session,syslogfile, start_for)).split()[0]
+    jsons=commands.getoutput("grep '%s' %s | grep '{' | tail -n +%s" % (session,syslogfile, tmp))
 #    print "Content-type: text/html\n"
 #    print "<html><body>+++ " + tmp +"+" + "++++"
 #    sys.exit()
