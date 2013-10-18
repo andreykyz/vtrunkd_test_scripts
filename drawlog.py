@@ -15,18 +15,22 @@ import colorsys
 
 def parse_str(ss, stop_minute):
     l_json = []
+    start_time=0
     for l in ss.split("\n"):
         dl = l.split();
         if len(l) < 5: continue
         try:
             sdtime = dl[2];
             dt = time.strptime("14/09/12 %s000" % sdtime, '%d/%m/%y %H:%M:%S.%f');
+            if (start_time == 0): start_time=int(time.mktime(dt))
         except:
             raise ValueError("Could not parse date: \n%s\nwith:\n%s" % (l, repr(l.split(" "))))
             sys.exit()
+        t=int(time.mktime(dt))
+        if ((t-start_time)/60.)>stop_minute: break
+#        print "t - " + str((t-start_time)) + " start - " + str(stop_minute)
         ms = int(sdtime.split(".")[1])
-        t = int(time.mktime(dt))*1000+ms
-        if (t/1000.)>stop_minute: break
+        t = t*1000+ms
         data = json.loads('{' + l.split('{')[1])
         data["ts"] = t
         l_json.append(data)
@@ -51,14 +55,17 @@ def main():
     if len(session) < 5 or len(session) > 16:
         sys.exit()
     # now prepare logfile
-#    jsons=commands.getoutput("grep '%s' /var/log/syslog | grep '{' | tail -n %s" % (session, str(l)))
-    jsons=commands.getoutput("grep '%s' /var/log/syslog | grep '{' | tail -n +`cat syslog | grep '%s' -m 1 -n | cut -d: -f1`" % (session, start_for))
+    tmp=commands.getoutput("grep '%s' /var/log/syslog1 | grep '{' | grep '%s' -m 1 -n | cut -d: -f1" % (session, start_for)).split()[0]
+    jsons=commands.getoutput("grep '%s' /var/log/syslog1 | grep '{' | tail -n +%s" % (session, tmp))
+#    print "Content-type: text/html\n"
+#    print "<html><body>+++ " + tmp +"+" + "++++"
+#    sys.exit()
     if "v_s_q" in jsons:
         vsq=1
     else:
         vsq=0
     #data_cli = parse_file(sys.argv[1]+'_syslog-cli_json')
-    data_srv = parse_str(jsons,minute)
+    data_srv = parse_str(jsons,int(minute))
     # now plot
     try:
         plot_data("/tmp/plot_%s.png" % session, None, data_srv)
