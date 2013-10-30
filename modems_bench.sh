@@ -5,8 +5,9 @@ IP2='195.93.181.85'
 IP3='195.93.181.123'
 #IP3=`dig +short bond2.wfst.co`
 
-SRVIP='195.93.181.123'
+#SRVIP='195.93.181.123'
 #SRVIP=`dig +short bond2.wfst.co`
+SRVIP=`dig +short vtest.wifistyle.ru`
 
 YOTA=$(grep LTE /etc/vtrunkd.conf | cut -d' ' -f1)
 GSM=$(grep 3G /etc/vtrunkd.conf | cut -d' ' -f1)
@@ -32,9 +33,11 @@ echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_do
 
 touch direct_multi
 echo 'PPP0' > direct_multi
-echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> direct_multi 
+echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> direct_multi &
+sleep 1s
 echo 'PPP1' >> direct_multi
-echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> direct_multi
+echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> direct_multi &
+sleep 1s
 echo 'PPP2' >> direct_multi
 echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> direct_multi
 
@@ -64,38 +67,69 @@ ip route add default dev lo table 101
 ip route add default dev lo table 102
 ip route add default dev lo table 103
 
+ip route add $SRVIP dev ppp0 table 101
+ip route add $SRVIP dev ppp1 table 102
+ip route add $SRVIP dev ppp2 table 103
+
+killall -9 vtrunkd ; ipcrm -M 567888 ; ipcrm -M 567889 ; sleep 5s
 touch agg_solo
 echo 'PPP2' > agg_solo
+ip route show table 101
+ip route show table 102
+ip route show table 103
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT
-sleep 5s
-TUNNELIP=`ifconfig tun1 | grep 'inet addr' | awk -F: {'print$2'} | awk  {'print$1'}`
+sleep 8s
+
+route del -host $TESTIP dev tun1
+route add -host $TESTIP dev tun1
+
+TUNNELIP=`ifconfig tun1 | grep 'inet addr' | awk -F: {'print$3'} | awk  {'print$1'}`
 echo "Tunnel ip is $TUNNELIP"
 echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$TUNNELIP/u100 -o /dev/null -w @- >> agg_solo
 
 killall -9 vtrunkd ; ipcrm -M 567888 ; ipcrm -M 567889 ; sleep 5s
-
-echo 'PPP1' > agg_solo
+echo "" >> agg_solo
+echo 'PPP1' >> agg_solo
+ip route show table 101
+ip route show table 102
+ip route show table 103
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT
-sleep 5s
+sleep 8s
+
+route del -host $TESTIP dev tun1
+route add -host $TESTIP dev tun1
+
 echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$TUNNELIP/u100 -o /dev/null -w @- >> agg_solo
 
 killall -9 vtrunkd ; ipcrm -M 567888 ; ipcrm -M 567889 ; sleep 5s
+echo "" >> agg_solo
+echo 'PPP0' >> agg_solo
+ip route show table 101
+ip route show table 102
+ip route show table 103
+./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT
+sleep 8s
 
-touch agg_solo
-echo 'PPP0' > agg_solo
-./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT
-sleep 5s
 echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$TUNNELIP/u100 -o /dev/null -w @- >> agg_solo
+echo "" >> agg_solo
 
 killall -9 vtrunkd ; ipcrm -M 567888 ; ipcrm -M 567889 ; sleep 5s
 
+echo "multi"
 touch agg_multi
 echo "" > agg_multi
+ip route show table 101
+ip route show table 102
+ip route show table 103
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT
-sleep 5s
+sleep 8s
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT
-sleep 5s
+sleep 8s
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT
-sleep 5s
+sleep 8s
+route del -host $TESTIP dev tun1
+route add -host $TESTIP dev tun1
+
 echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$TUNNELIP/u100 -o /dev/null -w @- >> agg_multi
 
+echo "" >> agg_multi
