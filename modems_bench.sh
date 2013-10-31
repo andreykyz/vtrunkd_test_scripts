@@ -1,5 +1,11 @@
 #!/bin/bash
 
+cd /home/wifistyle
+
+SKIP1=$1
+SKIP2=$2
+SKIP3=$3
+
 IP1='195.93.181.86'
 IP2='195.93.181.85'
 IP3='195.93.181.123'
@@ -38,14 +44,18 @@ route add -host $IP1 dev ppp0
 route add -host $IP2 dev ppp1
 route add -host $IP3 dev ppp2
 
+if ! [ "$SKIP1" == "1" ]; then
 touch ${PREFIX}direct_solo
 route -n
 echo "PPP0 - time_total %{time_total} size_download %{size_download} speed_download %{speed_download}\n" | curl -m 120 --connect-timeout 4 http://$IP1/u100 -o /dev/null -w @- >> ${PREFIX}direct_solo
 route -n
+
 echo "PPP1 - time_total %{time_total} size_download %{size_download} speed_download %{speed_download}\n" | curl -m 120 --connect-timeout 4 http://$IP2/u100 -o /dev/null -w @- >> ${PREFIX}direct_solo
 route -n
 echo "PPP2 - time_total %{time_total} size_download %{size_download} speed_download %{speed_download}\n" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> ${PREFIX}direct_solo
+fi
 
+if ! [ "$SKIP2" == "1" ]; then
 route -n
 touch ${PREFIX}direct_multi
 echo "PPP0 - time_total %{time_total} size_download %{size_download} speed_download %{speed_download}\n" | curl -m 120 --connect-timeout 4 http://$IP1/u100 -o /dev/null -w @- >> ${PREFIX}direct_multi &
@@ -53,7 +63,7 @@ sleep 2s
 echo "PPP1 - time_total %{time_total} size_download %{size_download} speed_download %{speed_download}\n" | curl -m 120 --connect-timeout 4 http://$IP2/u100 -o /dev/null -w @- >> ${PREFIX}direct_multi &
 sleep 2s
 echo "PPP2 - time_total %{time_total} size_download %{size_download} speed_download %{speed_download}\n" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> ${PREFIX}direct_multi
-
+fi
 #### vtrunkd ####
 
 #### mark gateways ####
@@ -89,7 +99,7 @@ touch ${PREFIX}agg_solo
 ip route show table 101
 ip route show table 102
 ip route show table 103
-echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT" | tee ${PREFIX}agg_solo
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT" | tee -a ${PREFIX}agg_solo
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT
 sleep 8s
 
@@ -105,7 +115,7 @@ echo "" >> ${PREFIX}agg_solo
 ip route show table 101
 ip route show table 102
 ip route show table 103
-echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT" | tee ${PREFIX}agg_solo
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT" | tee -a ${PREFIX}agg_solo
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT
 sleep 8s
 
@@ -119,7 +129,7 @@ echo "" >> ${PREFIX}agg_solo
 ip route show table 101
 ip route show table 102
 ip route show table 103
-echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT" | tee ${PREFIX}agg_solo
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT" | tee -a ${PREFIX}agg_solo
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT
 sleep 8s
 
@@ -134,13 +144,13 @@ echo "" > ${PREFIX}agg_multi
 ip route show table 101
 ip route show table 102
 ip route show table 103
-echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT" | tee ${PREFIX}agg_multi
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT" | tee -a ${PREFIX}agg_multi
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT
 sleep 8s
-echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT" | tee ${PREFIX}agg_multi
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT" | tee -a ${PREFIX}agg_multi
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT
 sleep 8s
-echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT" | tee ${PREFIX}agg_multi
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT" | tee -a ${PREFIX}agg_multi
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT
 sleep 8s
 route del -host $TESTIP dev tun1
