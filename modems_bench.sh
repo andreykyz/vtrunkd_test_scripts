@@ -40,19 +40,23 @@ route add -host $IP3 dev ppp2
 
 touch ${PREFIX}direct_solo
 echo 'PPP0' > ${PREFIX}direct_solo
+route -n
 echo "time_total %{time_total} size_download %{size_download} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP1/u100 -o /dev/null -w @- >> ${PREFIX}direct_solo
+route -n
 echo 'PPP1' >> ${PREFIX}direct_solo
 echo "time_total %{time_total} size_download %{size_download} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP2/u100 -o /dev/null -w @- >> ${PREFIX}direct_solo
+route -n
 echo 'PPP2' >> ${PREFIX}direct_solo
 echo "time_total %{time_total} size_download %{size_download} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> ${PREFIX}direct_solo
 
+route -n
 touch ${PREFIX}direct_multi
 echo 'PPP0' > ${PREFIX}direct_multi
 echo "time_total %{time_total} size_download %{size_download} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> ${PREFIX}direct_multi &
-sleep 1s
+sleep 2s
 echo 'PPP1' >> ${PREFIX}direct_multi
 echo "time_total %{time_total} size_download %{size_download} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> ${PREFIX}direct_multi &
-sleep 1s
+sleep 2s
 echo 'PPP2' >> ${PREFIX}direct_multi
 echo "time_total %{time_total} size_download %{size_download} speed_download %{speed_download}" | curl -m 120 --connect-timeout 4 http://$IP3/u100 -o /dev/null -w @- >> ${PREFIX}direct_multi
 
