@@ -89,6 +89,7 @@ touch ${PREFIX}agg_solo
 ip route show table 101
 ip route show table 102
 ip route show table 103
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT" | tee ${PREFIX}agg_solo
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT
 sleep 8s
 
@@ -104,6 +105,7 @@ echo "" >> ${PREFIX}agg_solo
 ip route show table 101
 ip route show table 102
 ip route show table 103
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT" | tee ${PREFIX}agg_solo
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT
 sleep 8s
 
@@ -117,7 +119,8 @@ echo "" >> ${PREFIX}agg_solo
 ip route show table 101
 ip route show table 102
 ip route show table 103
-./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT" | tee ${PREFIX}agg_solo
+./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT
 sleep 8s
 
 echo "PPP0 - time_total %{time_total} size_download %{size_download} speed_download %{speed_download}\n" | curl -m 120 --connect-timeout 4 http://$TUNNELIP/u100 -o /dev/null -w @- >> ${PREFIX}agg_solo
@@ -131,10 +134,13 @@ echo "" > ${PREFIX}agg_multi
 ip route show table 101
 ip route show table 102
 ip route show table 103
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT" | tee ${PREFIX}agg_multi
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $SKY $SRVIP -P $PORT
 sleep 8s
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT" | tee ${PREFIX}agg_multi
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $YOTA $SRVIP -P $PORT
 sleep 8s
+echo "./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT" | tee ${PREFIX}agg_multi
 ./vtrunkd/vtrunkd -f /etc/vtrunkd.conf $GSM $SRVIP -P $PORT
 sleep 8s
 route del -host $TESTIP dev tun1
