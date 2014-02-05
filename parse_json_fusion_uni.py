@@ -76,7 +76,7 @@ def plot_data(fn, data_cli, data_srv):
     figurePlot.text(.5, .95, "SERVER\n"+open(fn+"_.nojson").read(), horizontalalignment='center')
 
     plotAX3 = plt.subplot(511)
-    plotAX3.set_yscale('log')
+#    plotAX3.set_yscale('log')
     plt.title("ACK coming speed")
     i=0
     for someLine in data_srv_arr:
@@ -115,7 +115,7 @@ def plot_data(fn, data_cli, data_srv):
 #                plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "v_s_q"), "-", label="v_send_q "+data_srv_arr[i][0]['name'], linestyle='--',c='k')
         else:
             plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="send_q "+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
-            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_b"), "-", label="send_q_buffer "+data_srv_arr[i][0]['name'],linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
+#            plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_b"), "-", label="send_q_buffer "+data_srv_arr[i][0]['name'],linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,1))))
         plt.legend()
         i= i+1
     
@@ -138,6 +138,7 @@ def plot_data(fn, data_cli, data_srv):
     for someLine in data_srv_arr:
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_srv_arr[i][0]['name'])
         plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "R_MODE"))*((i*10)+30), ".", label="R_MODE "+data_srv_arr[i][0]['name'])
+#        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "ag_sw_c"), "*", label="sw counter "+data_srv_arr[i][0]['name'])
         plt.legend()
         i=i+1
     

@@ -49,8 +49,8 @@ def plot_data(fn, data_c1, data_c2, data_s1,  data_s2):
 #    plotAX3.set_yscale('log')
     plt.title("speed (upload, server)")
 
-    plt.plot(zipj(data_c1, "ts"), numpy.array(zipj(data_c1, "upload"))*1000, "-", label='upload1')
-    plt.plot( zipj(data_c2, "ts"), numpy.array(zipj(data_c2, "upload"))*1000, "-", label="upload2")
+    plt.plot(zipj(data_c1, "ts"), numpy.array(zipj(data_c1, "download"))*1000, "-", label='download1')
+    plt.plot( zipj(data_c2, "ts"), numpy.array(zipj(data_c2, "download"))*1000, "-", label="download2")
     plt.plot(  zipj(data_c1, "ts"), zipj(data_c1, "magic_upload"), "-", label="magic_upload1")
     plt.plot( zipj(data_c2, "ts"), zipj(data_c2, "magic_upload"), "-", label="magic_upload2")
     plt.plot(  zipj(data_c1, "ts"), zipj(data_c1, "ACK_coming_speed"), "-", label="ACK_coming_speed1")

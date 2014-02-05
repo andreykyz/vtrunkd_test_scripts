@@ -81,7 +81,7 @@ def plot_data(fn, data_cli, data_srv):
     i=0
     for someLine in data_srv_arr:
         plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "ACS"), "-", label="ACK_coming_speed "+data_srv_arr[i][0]['name'])
-        plt.legend()
+	plt.legend()
         i= i+1
 
     plotAX3 = plt.subplot(512)
@@ -94,7 +94,7 @@ def plot_data(fn, data_cli, data_srv):
         plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_e"), "-", label='speed_effecient '+data_srv_arr[i][0]['name'],c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
 #        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "m_s_min"), "-", label='magic_speed_min '+data_srv_arr[i][0]['name'],linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.8))))
 #        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "m_s_max"), "-", label='magic_speed_max '+data_srv_arr[i][0]['name'],linestyle='--',c=tohex(*(colorsys.hsv_to_rgb((1./6)*(i),1,0.6))))
-#        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "upload"), "-", label='upload '+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "download"), "-", label='download '+data_srv_arr[i][0]['name'])
         plt.legend()
         i= i+1
     

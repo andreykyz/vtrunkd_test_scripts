@@ -20,10 +20,10 @@ VCLI_ETH1_IP=192.168.57.100
 VCLI_ETH2_IP=192.168.58.100
 VCLI_ETH3_IP=192.168.59.100
 
-SRV_MACHINE="user@srv-32"
-#CLI_MACHINE="user@cli-32"
-#SRV_MACHINE="user@srv"
+#SRV_MACHINE="user@srv-32"
 CLI_MACHINE="user@cli-32"
+SRV_MACHINE="user@srv"
+#CLI_MACHINE="user@cli"
 
 
 NTP_SERVER="0.ubuntu.pool.ntp.org"
@@ -43,12 +43,13 @@ echo -n $COUNT > $LCNT
 PREFIX="$COUNT"_
 TITLE=""
 ONE=""
+RULE=""
 while getopts :oetpT: OPTION
 do
  case $OPTION in
  o) echo "One thread"
   ONE="1111"
-  TITLE = "One_thread"
+  TITLE="$TITLE One_thread"
   ;;
  e) echo "Execute vtrunkd only"
   EXEC="1"
@@ -70,9 +71,14 @@ do
 done
 
 echo "Doing with prefix $PREFIX"
-if [ -z "$TITLE" ]; then
+if [ "$TITLE" ]; then
     echo "Title is $TITLE"
 fi
+
+if [ "$RULE" ]; then
+    echo "$RULE"
+fi
+
 echo "Starting..."
 echo "NTP sync..."
 ssh $CLI_MACHINE "sudo ntpdate $NTP_SERVER" &
@@ -90,32 +96,28 @@ ssh $CLI_MACHINE "sync"
 ssh $SRV_MACHINE "sync"
 ssh $CLI_MACHINE "mkdir -p $VTRUNKD_V_ROOT 2> /dev/null"
 ssh $SRV_MACHINE "mkdir -p $VTRUNKD_V_ROOT 2> /dev/null"
-#cd $VTRUNKD_L_ROOT ; git checkout vsqo ; sync
+#cd $VTRUNKD_L_ROOT ; git checkout netlink_server ; sync
 scp -r $VTRUNKD_L_ROOT/* $SRV_MACHINE:$VTRUNKD_V_ROOT/ > /dev/null
-#cd $VTRUNKD_L_ROOT ; git checkout client_mem_less  ; sync
+#cd $VTRUNKD_L_ROOT ; git stash ; git checkout vsqo  ; sync
 scp -r $VTRUNKD_L_ROOT/* $CLI_MACHINE:$VTRUNKD_V_ROOT/ > /dev/null
-#git checkout vsqo
+#git checkout netlink_server ; git stash pop
 echo "Compiling vtrunkd ..."
-if ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make 2>dev/null"; then 
-    echo "OK"
-else
-    ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" 2>/dev/null 1>/dev/null
-#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O1 ./configure --prefix= --enable-json --disable-o3"  2>/dev/null 1>/dev/null
+ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make distclean"
+#    ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" 2>/dev/null 1>/dev/null
+ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json" 2>/dev/null 1>/dev/null
+#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O0\ -g ./configure --prefix= --enable-json --disable-o3"  2>/dev/null 1>/dev/null
 #ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= " 2>/dev/null 1>/dev/null
     ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make" 2>/dev/null 1>/dev/null
 #    echo "Compile Error!"
 #    exit 0;
-fi
+
 echo "Compiling ..."
-if ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make 2>/dev/null"; then
-    echo "OK"
-else
-#    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O0 ./configure --prefix= --enable-json --disable-o3"  2>/dev/null 1>/dev/null
+ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make distclean"
+#    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O0\ -g  ./configure --prefix= --enable-json --disable-o3"  2>/dev/null 1>/dev/null
     ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json"  2>/dev/null 1>/dev/null
     ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make"  2>/dev/null 1>/dev/null
 #    echo "Compile Error!"
 #    exit 0;
-fi
 
 echo "Setting IP addresses..."
 if ssh $SRV_MACHINE "sudo ifconfig eth1 $VSRV_ETH1_IP && sudo ifconfig eth2 $VSRV_ETH2_IP && sudo ifconfig eth3 $VSRV_ETH3_IP"; then
@@ -131,9 +133,16 @@ else
     exit 0
 fi
 echo "Applying emulation TC rules"
-ssh $SRV_MACHINE "sudo $VTRUNKD_V_ROOT/test/srv_emulate_2.sh > /dev/null"
+#ssh $SRV_MACHINE "sudo $VTRUNKD_V_ROOT/test/srv_emulate_2.sh > /dev/null"
 #ssh $SRV_MACHINE "sudo $VTRUNKD_V_ROOT/test/srv_emulate_yota_sky.sh > /dev/null"
 #ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/test/cli_emulate_yota_sky.sh > /dev/null"
+
+#echo "TCP dump..."
+#ssh $SRV_MACHINE "sudo rm -f /home/user/virtual*cap"
+#ssh $CLI_MACHINE "sudo rm -f /home/user/virtual*cap"
+#ssh $SRV_MACHINE "sudo tcpdump -i eth1 -s 65535 -w /home/user/virtual_eth1.cap" &
+#ssh $CLI_MACHINE "sudo tcpdump -i eth1 -s 65535 -w /home/user/virtual_eth1.cap" &
+
 echo "Starting server..."
 #ssh $SRV_MACHINE "sudo valgrind --tool=callgrind --trace-children=yes $VTRUNKD_V_ROOT/vtrunkd -s -f $VTRUNKD_V_ROOT/test/vtrunkd-srv.test.conf -P 5003"
 ssh $SRV_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -s -f $VTRUNKD_V_ROOT/test/vtrunkd-srv.test.conf -P 5003"
@@ -146,6 +155,11 @@ if [ -z $ONE ]; then
     echo "Starting client 3..."
     ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf atest3 $VSRV_ETH3_IP -P 5003"
 fi
+sleep 2
+
+#ssh $SRV_MACHINE "sudo tcpdump -i tun100 -s 65535 -w /home/user/virtual.cap" &
+#ssh $CLI_MACHINE "sudo tcpdump -i tun1 -s 65535 -w /home/user/virtual.cap" &
+
 echo "Full started"
 if [ $EXEC = "1" ]; then
     "Execute only!"
@@ -160,16 +174,13 @@ echo "Worcking..."
 sleep 3
 #ssh $CLI_MACHINE 'nping -c 0 --udp -p2000-2050 --rate 50 --quiet -N -e tun1 --data-length 1300 10.200.1.31' &
 #ssh $SRV_MACHINE 'nping -c 0 --udp -p2000-2050 --rate 200 --quiet -N -e tun100 --data-length 18000 10.200.1.32' &
-#ssh $CLI_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 90 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed &
-#ssh $CLI_MACHINE 'nping -c 0 --udp -p2000-2050 --rate 10 --quiet -N -e tun1 --data-length 1300 10.200.1.31' &
-#ssh $SRV_MACHINE 'nping -c 0 --udp -p2000-2050 --rate 20 --quiet -N -e tun100 --data-length 1300 10.200.1.32' &
-#sleep 100
 sleep 1
 #ssh $CLI_MACHINE 'killall nping'
 #ssh $SRV_MACHINE 'killall nping'
-#ssh $CLI_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 150 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed 
 sleep 1
-ssh $CLI_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 200 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed
+ssh $CLI_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 20 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed
+ssh $SRV_MACHINE  'sudo killall tcpdump'
+ssh $CLI_MACHINE  'sudo killall tcpdump'
 #ssh $SRV_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 400 --connect-timeout 4 http://10.200.1.32/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed
 echo "" >>  /tmp/${PREFIX}speed
 ssh $CLI_MACHINE "ping -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
@@ -177,9 +188,9 @@ cat ./test/srv_emulate_2.sh | grep ceil | awk {'print$12" "'} | tr -d '\n' >> /t
 echo "" >> /tmp/${PREFIX}speed
 cat ./test/srv_emulate_2.sh | grep delay | grep -v "#" | awk {'print$10" "$11" "$12";"'} | tr -d '\n' >> /tmp/${PREFIX}speed
 echo "" >> /tmp/${PREFIX}speed
-#echo "killall vtrunkd"
-#ssh $SRV_MACHINE "sudo killall vtrunkd"
-#ssh $CLI_MACHINE "sudo killall vtrunkd"
+echo "killall vtrunkd"
+#ssh $SRV_MACHINE "sudo killall -9 vtrunkd"
+#ssh $CLI_MACHINE "sudo killall -9 vtrunkd"
 # NOT WORKING CODE -->>>>>>>>>>>>>>>
 if [ $TEST = "1" ]; then
  echo "Speed testing..."
@@ -207,8 +218,14 @@ fi
 echo "Transfer syslogs"
 scp $CLI_MACHINE:/var/log/syslog /tmp/${PREFIX}syslog-cli
 scp $SRV_MACHINE:/var/log/syslog /tmp/${PREFIX}syslog-srv
-grep "\"name\"\:" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
-grep "\"name\"\:" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
+#scp $CLI_MACHINE:/home/user/virtual.cap $LOGS_FOLDER/${PREFIX}_cli.cap
+#scp $SRV_MACHINE:/home/user/virtual.cap $LOGS_FOLDER/${PREFIX}_srv.cap
+#scp $CLI_MACHINE:/home/user/virtual_eth1.cap $LOGS_FOLDER/${PREFIX}_eth1_cli.cap
+#scp $SRV_MACHINE:/home/user/virtual_eth1.cap $LOGS_FOLDER/${PREFIX}_eth1_srv.cap
+#grep "\"name\"\:" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
+#grep "\"name\"\:" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
+grep "cubic_info" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
+grep "cubic_info" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
 cd $VTRUNKD_L_ROOT ; git log -n 1 | head -1 >> /tmp/"$PREFIX".nojson
 cd $VTRUNKD_L_ROOT ; git log -n 1 | tail -1 >> /tmp/"$PREFIX".nojson
 grep speed /tmp/${PREFIX}speed >> /tmp/"$PREFIX".nojson
@@ -217,10 +234,12 @@ cp /tmp/${PREFIX}* $LOGS_FOLDER
 #cp $VTRUNKD_L_ROOT/speed_parse_json_fusion.py $LOGS_FOLDER
 #cd $LOGS_FOLDER; python ./speed_parse_json_fusion.py $COUNT
 echo "Drawing graphs"
-cp $VTRUNKD_L_ROOT/test/parse_json_fusion_cli_uni.py $LOGS_FOLDER
-cd $LOGS_FOLDER; python ./parse_json_fusion_cli_uni.py $COUNT
-cp $VTRUNKD_L_ROOT/test/parse_json_fusion_uni.py $LOGS_FOLDER
-cd $LOGS_FOLDER; python ./parse_json_fusion_uni.py $COUNT
+#cp $VTRUNKD_L_ROOT/test/parse_json_fusion_cli_uni.py $LOGS_FOLDER
+#cd $LOGS_FOLDER; python ./parse_json_fusion_cli_uni.py $COUNT
+#cp $VTRUNKD_L_ROOT/test/parse_json_fusion_uni.py $LOGS_FOLDER
+#cd $LOGS_FOLDER; python ./parse_json_fusion_uni.py $COUNT
+cp $VTRUNKD_L_ROOT/test/parse_udp_cubic.py $LOGS_FOLDER
+cd $LOGS_FOLDER; python ./parse_udp_cubic.py $COUNT
 #ssh -p $DBOXHOST_PORT $DBOXHOST "cd ~/Dropbox/alarm_logs/; python ./parse_json_fusion.py $COUNT"
 echo "Compressing logs in background"
 #sh $VTRUNKD_L_ROOT/test/files_thread_compress.sh -d $LOGS_FOLDER &
