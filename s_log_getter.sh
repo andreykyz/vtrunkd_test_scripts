@@ -98,8 +98,8 @@ ssh $SRV_MACHINE "sync"
 scp -r $VTRUNKD_L_ROOT/* $SRV_MACHINE:$VTRUNKD_V_ROOT/ > /dev/null
 echo "Compiling vtrunkd server ..."
 sh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make distclean"
-#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3 --enable-json"  2>/dev/null 1>/dev/null && echo 'configure server OK'
-ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3"  2>/dev/null 1>/dev/null && echo 'configure server OK'
+ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3 --enable-json --enable-self-testing"  2>/dev/null 1>/dev/null && echo 'configure server OK'
+#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3"  2>/dev/null 1>/dev/null && echo 'configure server OK'
 ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make" 2>/dev/null 1>/dev/null  && echo 'make server OK'
 
 ssh $CLI_MACHINE "rm -r -f $VTRUNKD_V_ROOT 2> /dev/null"
@@ -110,7 +110,7 @@ scp -r $VTRUNKD_L_ROOT/* $CLI_MACHINE:$VTRUNKD_V_ROOT/ > /dev/null
 echo "Compiling client..."
     ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make distclean"
 #    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O0\ -g\ -gdwarf-4\ -fvar-tracking-assignments ./configure --prefix= --disable-o3 --enable-client-only"  2>/dev/null 1>/dev/null
-    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3 --enable-client-only"  2>/dev/null 1>/dev/null
+    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3 --enable-client-only --enable-json"  2>/dev/null 1>/dev/null
 #    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json"  2>/dev/null 1>/dev/null
     ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make"  2>/dev/null 1>/dev/null
 #    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; strip vtrunkd"  2>/dev/null 1>/dev/null
@@ -159,6 +159,7 @@ LEAK_CHECK='definite,indirect,possible'
 #ssh $CLI_MACHINE "cd ~/sandbox ; screen -d -m -A -S eth2 sudo python gdb_auto_attach.py 2"
 #ssh $CLI_MACHINE "cd ~/sandbox ; screen -d -m -A -S eth3 sudo python gdb_auto_attach.py 3"
 ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth1 $VSRV_ETH1_IP -P $VTR_PORT"
+#ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth2 $VSRV_ETH2_IP -P $VTR_PORT"
 if [ -z $ONE ]; then
     sleep 1
     echo "Starting client 2..."
@@ -169,7 +170,16 @@ if [ -z $ONE ]; then
 #    ssh $CLI_MACHINE "sudo valgrind -v --tool=memcheck --trace-children=yes --leak-resolution=high --leak-check=full --num-callers=60 --show-leak-kinds=$LEAK_CHECK --log-file=valgrind_memckeck_${PREFIX}02.log  $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth2 $VSRV_ETH2_IP -P $VTR_PORT"
 #    ssh $CLI_MACHINE "sudo valgrind --tool=helgrind --log-file=helgrind_${PREFIX}02.log  $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth2 $VSRV_ETH2_IP -P $VTR_PORT"
 #    echo "Starting client 3..."
-    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth3 $VSRV_ETH3_IP -P $VTR_PORT"
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth3 $VSRV_ETH3_IP -P $VTR_PORT"
+
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth4 $VSRV_ETH1_IP -P $VTR_PORT"
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth5 $VSRV_ETH2_IP -P $VTR_PORT"
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth6 $VSRV_ETH3_IP -P $VTR_PORT"
+
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth7 $VSRV_ETH1_IP -P $VTR_PORT"
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth8 $VSRV_ETH2_IP -P $VTR_PORT"
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth9 $VSRV_ETH3_IP -P $VTR_PORT"
+
 #     ssh $CLI_MACHINE "sudo valgrind --tool=massif --pages-as-heap=yes --log-file=massif_${PREFIX}03.log $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth2 $VSRV_ETH2_IP -P $VTR_PORT"
 #    ssh $CLI_MACHINE "sudo valgrind -v --tool=memcheck --trace-children=yes --leak-resolution=high --leak-check=full --num-callers=60 --show-leak-kinds=$LEAK_CHECK --log-file=valgrind_memckeck_${PREFIX}03.log $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth3 $VSRV_ETH3_IP -P $VTR_PORT"
 #    ssh $CLI_MACHINE "sudo valgrind --tool=helgrind --log-file=helgrind_${PREFIX}03.log $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth3 $VSRV_ETH3_IP -P $VTR_PORT"
@@ -192,9 +202,13 @@ git log --oneline -1 >> /tmp/${PREFIX}speed
 echo "Worcking..."
 #exit
 #ssh $SRV_MACHINE "sudo ping -c 39  -W 0.1 -i 0.02  10.200.1.32"
-echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | ssh $CLI_MACHINE curl -m 300 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @- > /tmp/${PREFIX}speed
+echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | ssh $CLI_MACHINE curl -m 40 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @- > /tmp/${PREFIX}speed
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth7 $VSRV_ETH1_IP -P $VTR_PORT"
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth8 $VSRV_ETH2_IP -P $VTR_PORT"
+#    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth9 $VSRV_ETH3_IP -P $VTR_PORT"
+#echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | ssh $CLI_MACHINE curl -m 30 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @- > /tmp/${PREFIX}speed
 #echo "" >>  /tmp/${PREFIX}ping
-#ssh $SRV_MACHINE "sudo ping -c 100 -i 0.1  10.200.1.32"
+ssh $SRV_MACHINE "sudo ping -c 100 -i 0.001  10.200.1.32"
 #ssh $SRV_MACHINE "sudo ping -c 1000 -i 0.001 10.200.1.32"
 #ssh $SRV_MACHINE sudo ping -c 100 -i 1 10.200.1.32
 #cat /tmp/${PREFIX}ping
