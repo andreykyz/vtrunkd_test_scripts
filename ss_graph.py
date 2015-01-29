@@ -8,7 +8,7 @@ stat = []
 prev_max = 0
 counter=0
 try:
-    f = open("%s_cwnd" % (sys.argv[1]),'w')
+    f = open("%scwnd" % (sys.argv[1]),'w')
 except:
     f = open("cwnd",'w')
 try:
@@ -21,7 +21,7 @@ try:
                 a.append(cwnd)
         # TODO: shift logarithm by 50 points - we never have less than 10 pkt in cwnd
         print("%d %s" % (max(a), "*"*int(math.log(float(max(a)),1.035))))
-        f.write("%d;%d00\n" % (max(a),counter))
+        f.write("{\"cwnd\":%d,\"time\":%d}\n" % (max(a),counter))
         if max(a) < prev_max:
             stat.append(float(prev_max))
         prev_max = max(a)

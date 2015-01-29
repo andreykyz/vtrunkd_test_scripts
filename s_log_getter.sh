@@ -211,7 +211,10 @@ sleep 1s
 #ssh $SRV_MACHINE "sudo tail -3 /tmp/${PREFIX}ping_tmp >> /tmp/${PREFIX}ping_srv"
 #ssh $SRV_MACHINE "sudo ping -s 700 -c 10 -i 0.001 $VCLI_ETH1_IP"
 #ssh $CLI_MACHINE "ping -s 700 -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
-echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | ssh $CLI_MACHINE curl -m 30 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @- >> /tmp/${PREFIX}speed
+ssh $SRV_MACHINE "python $VTRUNKD_V_ROOT/test/ss_graph.py ${PREFIX} > /dev/null &"
+echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | ssh $CLI_MACHINE curl -m 60 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @- >> /tmp/${PREFIX}speed
+ssh $SRV_MACHINE "ps aux | grep ss_graph | awk \'{ print$2 }\' | xargs kill"
+ssh $SRV_MACHINE "cp ~/*cwnd /tmp/"
 #    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth7 $VSRV_ETH1_IP -P $VTR_PORT"
 #    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth8 $VSRV_ETH2_IP -P $VTR_PORT"
 #    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth9 $VSRV_ETH3_IP -P $VTR_PORT"
@@ -261,12 +264,13 @@ echo "Transfer syslogs"
 scp $CLI_MACHINE:/var/log/syslog /tmp/${PREFIX}syslog-cli
 scp $SRV_MACHINE:/var/log/syslog /tmp/${PREFIX}syslog-srv
 scp $SRV_MACHINE:/tmp/${PREFIX}ping_srv $LOGS_FOLDER
+scp $SRV_MACHINE:/tmp/${PREFIX}cwnd $LOGS_FOLDER
 #scp $CLI_MACHINE:/home/user/virtual.cap $LOGS_FOLDER/${PREFIX}_cli.cap
 #scp $SRV_MACHINE:/home/user/virtual.cap $LOGS_FOLDER/${PREFIX}_srv.cap
 #scp $CLI_MACHINE:/home/user/virtual_eth1.cap $LOGS_FOLDER/${PREFIX}_eth1_cli.cap
 #scp $SRV_MACHINE:/home/user/virtual_eth1.cap $LOGS_FOLDER/${PREFIX}_eth1_srv.cap
-grep "\"name\"\:" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
-grep "\"name\"\:" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
+grep "\"name\"\:" /tmp/${PREFIX}syslog-srv | grep pnum > /tmp/${PREFIX}syslog-srv_json
+grep "\"name\"\:" /tmp/${PREFIX}syslog-cli | grep pnum > /tmp/${PREFIX}syslog-cli_json
 #grep "cubic_info" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
 #grep "cubic_info" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
 cd $VTRUNKD_L_ROOT ; git log -n 1 | head -1 >> /tmp/"$PREFIX".nojson

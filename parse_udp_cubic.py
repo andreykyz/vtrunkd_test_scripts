@@ -7,6 +7,14 @@ import sys, time, glob, os, numpy, datetime
 import matplotlib.pyplot as plt
 import colorsys
 
+def parse_cwnd(fn):
+    l_json = []
+    f = open(fn)
+    for l in f:
+        data = json.loads(l)
+        l_json.append(data)
+    return l_json
+
 def parse_file(fn):
     l_json = []
     f = open(fn)
@@ -28,11 +36,12 @@ def parse_file(fn):
 def main():
     data_cli = parse_file(sys.argv[1]+'_syslog-cli_json')
     data_srv = parse_file(sys.argv[1]+'_syslog-srv_json')
+    data_cwnd = parse_cwnd(sys.argv[1]+'_cwnd')
     # now plot
-    plot_data(sys.argv[1], data_cli, data_srv)
+    plot_data(sys.argv[1], data_cli, data_srv, data_cwnd)
 
 # name send_q_limit send_q rtt my_rtt cwnd isl buf_len upload hold_mode ACS R_MODE
-def plot_data(fn, data_cli, data_srv):
+def plot_data(fn, data_cli, data_srv, data_cwnd):
     data_cli_arr=[]
     data_srv_arr=[]
     someName = ""
@@ -75,21 +84,21 @@ def plot_data(fn, data_cli, data_srv):
 	figurePlot = plt.figure(figsize=(23.5, 4.5 * 5))
     figurePlot.text(.5, .95, "SERVER\n"+open(fn+"_.nojson").read(), horizontalalignment='center')
 
-    plotAX3 = plt.subplot(211)
+    plotAX1 = plt.subplot(311)
 #    plotAX3.set_yscale('log')
     plt.title("Send_q")
     i=0
     for someLine in data_srv_arr:
-#        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_l"), "-", label="Send q limit "+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "sql2"), "-", label="Send q limit "+data_srv_arr[i][0]['name'])
 #	plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "W_cubic"), "-", label="W"+data_srv_arr[i][0]['name'])
 #	plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "W_max"), "-", label="W max"+data_srv_arr[i][0]['name'])
 #	plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q"), "-", label="Send q"+data_srv_arr[i][0]['name'])
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "s_q_e"), "-", label="Send q eff"+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "rsr"), "-", label="rsr "+data_srv_arr[i][0]['name'])
         plt.legend()
         i= i+1
 
     DNAME="loss"    
-    plotAX1 = plt.subplot(212)
+    plotAX2 = plt.subplot(312)
     plt.title(DNAME)
     i=0
     plt.plot(zipj(data_srv_arr[0], "ts"), zipj(data_srv_arr[0], 'buf_len'), "-")
@@ -97,12 +106,14 @@ def plot_data(fn, data_cli, data_srv):
     for someLine in data_srv_arr:
 #        plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "hold_mode"))*((i*10)+90), ".", label="hold_mode "+data_srv_arr[i][0]['name'])
 #        plt.plot(zipj(data_srv_arr[i], "ts"), numpy.array(zipj(data_srv_arr[i], "R_MODE"))*((i*10)+30), ".", label="R_MODE "+data_srv_arr[i][0]['name'])
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "loss"), "-", label="Loss"+data_srv_arr[i][0]['name'])
+#        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "loss"), "-", label="Loss"+data_srv_arr[i][0]['name'])
         plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "W_cubic"), "-", label="W"+data_srv_arr[i][0]['name'])
-        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "W_max"), "-", label="W max"+data_srv_arr[i][0]['name'])
+        plt.plot(zipj(data_srv_arr[i], "ts"), zipj(data_srv_arr[i], "W_cubic_copy"), "-", label="W copy"+data_srv_arr[i][0]['name'])
         plt.legend()
         i=i+1
-    
+    plotAX3 = plt.subplot(313)
+    plt.title("cwnd")
+    plt.plot(zipj(data_cwnd, "time"), zipj(data_cwnd, 'cwnd'), "-")
     figurePlot.savefig(fn+"cubic.png", dpi=100)
     
 def zipj(l_json, name):
