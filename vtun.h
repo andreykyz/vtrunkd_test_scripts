@@ -189,6 +189,7 @@ struct vtun_host {
    int  rmt_fd;
    int  loc_fd;
 
+   int shmid;
    /* Persist mode */
    int  persist;
 
@@ -291,6 +292,7 @@ struct _write_buf {
     //struct frame_llist free_frames; /* init all elements here */
     struct frame_llist now; // maybe unused
     uint32_t last_written_seq; // last pack number has written into device
+    uint32_t last_recv_seq; // last pack number has written into device
     struct timeval last_write_time; // into device
     int buf_len;
     int broken_cnt;

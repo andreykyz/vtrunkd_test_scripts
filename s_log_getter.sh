@@ -98,8 +98,9 @@ ssh $SRV_MACHINE "sync"
 scp -r $VTRUNKD_L_ROOT/* $SRV_MACHINE:$VTRUNKD_V_ROOT/ > /dev/null
 echo "Compiling vtrunkd server ..."
 sh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make distclean"
-ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3 --enable-json --enable-self-testing"  2>/dev/null 1>/dev/null && echo 'configure server OK'
-#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3"  2>/dev/null 1>/dev/null && echo 'configure server OK'
+ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --enable-json --disable-o3"  2>/dev/null 1>/dev/null && echo 'configure server OK'
+#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O0\ -g ./configure --prefix= --disable-o3 --enable-json"  2>/dev/null 1>/dev/null && echo 'configure server OK'
+#ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -g ./configure --prefix="  2>/dev/null 1>/dev/null
 ssh $SRV_MACHINE "cd $VTRUNKD_V_ROOT; make" 2>/dev/null 1>/dev/null  && echo 'make server OK'
 
 ssh $CLI_MACHINE "rm -r -f $VTRUNKD_V_ROOT 2> /dev/null"
@@ -109,9 +110,9 @@ scp -r $VTRUNKD_L_ROOT/* $CLI_MACHINE:$VTRUNKD_V_ROOT/ > /dev/null
 
 echo "Compiling client..."
     ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make distclean"
-#    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O0\ -g\ -gdwarf-4\ -fvar-tracking-assignments ./configure --prefix= --disable-o3 --enable-client-only"  2>/dev/null 1>/dev/null
-    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O3\ -g ./configure --prefix= --disable-o3 --enable-client-only --enable-json"  2>/dev/null 1>/dev/null
-#    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; ./configure --prefix= --enable-json"  2>/dev/null 1>/dev/null
+#    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -O0\ -g ./configure --prefix= --disable-o3 --enable-json"  2>/dev/null 1>/dev/null
+#    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -DTRACE_BUF_LEN\ -O3\ -g ./configure --prefix= --disable-o3 --enable-client-only --enable-json"  2>/dev/null 1>/dev/null
+    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; CFLAGS=$CFLAGS\ -g\ -O3 ./configure --prefix= --enable-json --disable-o3 --disable-sum-send"  2>/dev/null 1>/dev/null
     ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; make"  2>/dev/null 1>/dev/null
 #    ssh $CLI_MACHINE "cd $VTRUNKD_V_ROOT; strip vtrunkd"  2>/dev/null 1>/dev/null
 #    echo "Compile Error!"
@@ -202,28 +203,36 @@ git log --oneline -1 >> /tmp/${PREFIX}speed
 echo "Worcking..."
 #exit
 #ssh $SRV_MACHINE "sudo ping -c 39  -W 0.1 -i 0.02  10.200.1.32"
-echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | ssh $CLI_MACHINE curl -m 40 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @- > /tmp/${PREFIX}speed
+#ssh $SRV_MACHINE "sudo ping -s 700 -c 10 -i 0.001  10.200.1.32"
+sleep 1s
+#ssh $SRV_MACHINE "sudo ping -s 700 -c 200 -i 0.1 192.168.57.100 | tee /tmp/${PREFIX}ping_tmp"
+#ssh $SRV_MACHINE "sudo tail -3 /tmp/${PREFIX}ping_tmp > /tmp/${PREFIX}ping_srv"
+#ssh $SRV_MACHINE "sudo ping -s 700 -c 500 -i 0.001 10.200.1.32 | tee /tmp/${PREFIX}ping_tmp"
+#ssh $SRV_MACHINE "sudo tail -3 /tmp/${PREFIX}ping_tmp >> /tmp/${PREFIX}ping_srv"
+#ssh $SRV_MACHINE "sudo ping -s 700 -c 10 -i 0.001 $VCLI_ETH1_IP"
+#ssh $CLI_MACHINE "ping -s 700 -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
+echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | ssh $CLI_MACHINE curl -m 30 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @- >> /tmp/${PREFIX}speed
 #    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth7 $VSRV_ETH1_IP -P $VTR_PORT"
 #    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth8 $VSRV_ETH2_IP -P $VTR_PORT"
 #    ssh $CLI_MACHINE "sudo $VTRUNKD_V_ROOT/vtrunkd -f $VTRUNKD_V_ROOT/test/vtrunkd-cli.test.conf eth9 $VSRV_ETH3_IP -P $VTR_PORT"
 #echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | ssh $CLI_MACHINE curl -m 30 --connect-timeout 4 http://10.200.1.31/u -o /dev/null -w @- > /tmp/${PREFIX}speed
 #echo "" >>  /tmp/${PREFIX}ping
-ssh $SRV_MACHINE "sudo ping -c 100 -i 0.001  10.200.1.32"
+#ssh $SRV_MACHINE "sudo ping -c 100 -i 0.001  10.200.1.32"
 #ssh $SRV_MACHINE "sudo ping -c 1000 -i 0.001 10.200.1.32"
 #ssh $SRV_MACHINE sudo ping -c 100 -i 1 10.200.1.32
 #cat /tmp/${PREFIX}ping
 #ssh $SRV_MACHINE sudo ping -f -c 20000 10.200.1.32
 #ssh $SRV_MACHINE  "ps aux | grep valgr | awk '{ print$2 }' | xargs sudo kill"
 #ssh $SRV_MACHINE 'echo "time_starttransfer %{time_starttransfer} time_total %{time_total} speed_download %{speed_download}" | curl -m 400 --connect-timeout 4 http://10.200.1.32/u -o /dev/null -w @-' >> /tmp/${PREFIX}speed
-echo "" >>  /tmp/${PREFIX}speed
-ssh $CLI_MACHINE "ping -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
+#echo "" >>  /tmp/${PREFIX}speed
+#ssh $CLI_MACHINE "ping -c 10 -q -a 10.200.1.31" | tail -1 >> /tmp/${PREFIX}speed
 cat ./test/srv_emulate_2.sh | grep ceil | awk {'print$12" "'} | tr -d '\n' >> /tmp/${PREFIX}speed
 echo "" >> /tmp/${PREFIX}speed
 cat ./test/srv_emulate_2.sh | grep delay | grep -v "#" | awk {'print$10" "$11" "$12";"'} | tr -d '\n' >> /tmp/${PREFIX}speed
 echo "" >> /tmp/${PREFIX}speed
-#echo "killall vtrunkd"
-#ssh $SRV_MACHINE "sudo killall -9 vtrunkd"
-#ssh $CLI_MACHINE "sudo killall -9 vtrunkd"
+echo "killall vtrunkd"
+ssh $SRV_MACHINE "sudo killall -9 vtrunkd"
+ssh $CLI_MACHINE "sudo killall -9 vtrunkd"
 # NOT WORKING CODE -->>>>>>>>>>>>>>>
 if [ $TEST = "1" ]; then
  echo "Speed testing..."
@@ -251,14 +260,15 @@ fi
 echo "Transfer syslogs"
 scp $CLI_MACHINE:/var/log/syslog /tmp/${PREFIX}syslog-cli
 scp $SRV_MACHINE:/var/log/syslog /tmp/${PREFIX}syslog-srv
+scp $SRV_MACHINE:/tmp/${PREFIX}ping_srv $LOGS_FOLDER
 #scp $CLI_MACHINE:/home/user/virtual.cap $LOGS_FOLDER/${PREFIX}_cli.cap
 #scp $SRV_MACHINE:/home/user/virtual.cap $LOGS_FOLDER/${PREFIX}_srv.cap
 #scp $CLI_MACHINE:/home/user/virtual_eth1.cap $LOGS_FOLDER/${PREFIX}_eth1_cli.cap
 #scp $SRV_MACHINE:/home/user/virtual_eth1.cap $LOGS_FOLDER/${PREFIX}_eth1_srv.cap
-#grep "\"name\"\:" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
-#grep "\"name\"\:" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
-grep "cubic_info" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
-grep "cubic_info" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
+grep "\"name\"\:" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
+grep "\"name\"\:" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
+#grep "cubic_info" /tmp/${PREFIX}syslog-srv > /tmp/${PREFIX}syslog-srv_json
+#grep "cubic_info" /tmp/${PREFIX}syslog-cli > /tmp/${PREFIX}syslog-cli_json
 cd $VTRUNKD_L_ROOT ; git log -n 1 | head -1 >> /tmp/"$PREFIX".nojson
 cd $VTRUNKD_L_ROOT ; git log -n 1 | tail -1 >> /tmp/"$PREFIX".nojson
 grep speed /tmp/${PREFIX}speed >> /tmp/"$PREFIX".nojson
